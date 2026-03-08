@@ -3,9 +3,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Briefcase, User, KanbanSquare, BarChart3,
-  MessageSquareText, FileText, Bell, Settings, ChevronLeft, ChevronRight, Sparkles,
+  MessageSquareText, FileText, Bell, Settings, ChevronLeft, ChevronRight, Sparkles, LogOut,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
