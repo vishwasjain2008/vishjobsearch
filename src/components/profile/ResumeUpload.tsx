@@ -125,7 +125,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
   if ((uploaded || stage === "done") && stage !== "uploading" && stage !== "parsing") {
     return (
       <div className="rounded-xl border border-border bg-muted/30 p-4 flex items-center gap-3">
-        <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+        <CheckCircle2 className="w-5 h-5 text-score-high shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground">Resume uploaded & parsed</p>
           <p className="text-xs text-muted-foreground truncate">{fileName}</p>
