@@ -3,9 +3,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Briefcase, User, KanbanSquare, BarChart3,
-  MessageSquareText, FileText, Bell, Settings, ChevronLeft, ChevronRight, Sparkles,
+  MessageSquareText, FileText, Bell, Settings, ChevronLeft, ChevronRight, Sparkles, LogOut,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -19,6 +20,7 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const signOut = () => supabase.auth.signOut();
   const location = useLocation();
 
   return (
@@ -98,6 +100,18 @@ export const Sidebar: React.FC = () => {
           <Settings className={cn("shrink-0", collapsed ? "w-5 h-5" : "w-4 h-4")} />
           {!collapsed && <span>Settings</span>}
         </NavLink>
+
+        <button
+          onClick={signOut}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-destructive/20 hover:text-destructive transition-all",
+            collapsed && "justify-center px-2"
+          )}
+          title={collapsed ? "Sign Out" : undefined}
+        >
+          <LogOut className={cn("shrink-0", collapsed ? "w-5 h-5" : "w-4 h-4")} />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
 
         <button
           onClick={() => setCollapsed(!collapsed)}

@@ -1,8 +1,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, FileText, Copy, Check, ChevronDown, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Sparkles, FileText, Copy, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { CandidateProfile, JobListing } from "@/types";
@@ -13,20 +12,17 @@ interface ResumeOptimizerProps {
 }
 
 export const ResumeOptimizer: React.FC<ResumeOptimizerProps> = ({ job, profile }) => {
-  const [activeTab, setActiveTab] = useState<"resume" | "cover-letter">("resume");
   const [content, setContent] = useState("");
-  const [coverContent, setCoverContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const abortRef = useRef<AbortController | null>(null);
 
-  const generate = useCallback(async (type: "resume" | "cover-letter") => {
+  const generate = useCallback(async () => {
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
     setLoading(true);
-    if (type === "resume") setContent("");
-    else setCoverContent("");
+    setContent("");
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -39,7 +35,7 @@ export const ResumeOptimizer: React.FC<ResumeOptimizerProps> = ({ job, profile }
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? anonKey}`,
         },
-        body: JSON.stringify({ profile, job, type }),
+        body: JSON.stringify({ profile, job, type: "resume" }),
         signal: abortRef.current.signal,
       });
 
@@ -72,11 +68,7 @@ export const ResumeOptimizer: React.FC<ResumeOptimizerProps> = ({ job, profile }
           if (json === "[DONE]") break;
           try {
             const chunk = JSON.parse(json)?.choices?.[0]?.delta?.content ?? "";
-            if (chunk) {
-              acc += chunk;
-              if (type === "resume") setContent(acc);
-              else setCoverContent(acc);
-            }
+            if (chunk) { acc += chunk; setContent(acc); }
           } catch { /* partial */ }
         }
       }
@@ -88,10 +80,8 @@ export const ResumeOptimizer: React.FC<ResumeOptimizerProps> = ({ job, profile }
     }
   }, [job, profile, toast]);
 
-  const activeContent = activeTab === "resume" ? content : coverContent;
-
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(activeContent);
+    navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     toast({ title: "Copied to clipboard!" });
@@ -99,49 +89,20 @@ export const ResumeOptimizer: React.FC<ResumeOptimizerProps> = ({ job, profile }
 
   return (
     <div className="space-y-3">
-      {/* Tab selector */}
-      <div className="flex gap-1.5">
-        {(["resume", "cover-letter"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
-              activeTab === t
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background text-muted-foreground border-border hover:border-primary/50"
-            )}
-          >
-            {t === "resume" ? "Resume Optimizer" : "Cover Letter"}
-          </button>
-        ))}
-      </div>
-
-      {/* Generate button */}
-      <Button
-        onClick={() => generate(activeTab)}
-        disabled={loading}
-        size="sm"
-        className="w-full gap-2"
-      >
+      <Button onClick={generate} disabled={loading} size="sm" className="w-full gap-2">
         {loading ? (
           <><Loader2 className="w-3.5 h-3.5 animate-spin" />Generating…</>
         ) : (
-          <><Sparkles className="w-3.5 h-3.5" />
-            {activeContent ? "Regenerate" : `Generate AI ${activeTab === "resume" ? "Resume Optimization" : "Cover Letter"}`}
-          </>
+          <><Sparkles className="w-3.5 h-3.5" />{content ? "Regenerate" : "Generate AI Resume Optimization"}</>
         )}
       </Button>
 
-      {/* Output */}
-      {activeContent && (
+      {content ? (
         <div className="relative rounded-xl border border-border bg-muted/30 p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">
-                {activeTab === "resume" ? "Tailored for " : "Cover Letter for "}{job.company}
-              </span>
+              <span className="text-xs font-semibold text-foreground">Tailored for {job.company}</span>
               <Badge variant="secondary" className="text-xs">AI Generated</Badge>
             </div>
             <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs" onClick={copyToClipboard}>
@@ -149,15 +110,13 @@ export const ResumeOptimizer: React.FC<ResumeOptimizerProps> = ({ job, profile }
             </Button>
           </div>
           <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto scrollbar-thin font-mono">
-            {activeContent}
+            {content}
             {loading && <span className="inline-block w-1.5 h-3.5 bg-primary animate-pulse ml-0.5 align-middle" />}
           </div>
         </div>
-      )}
-
-      {!activeContent && !loading && (
+      ) : !loading && (
         <p className="text-xs text-muted-foreground text-center py-2">
-          Click generate to get AI-tailored content optimized for {job.title} at {job.company}
+          Click generate to get AI-tailored resume content optimized for {job.title} at {job.company}
         </p>
       )}
     </div>
