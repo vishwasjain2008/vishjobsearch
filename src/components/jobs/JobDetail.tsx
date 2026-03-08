@@ -177,49 +177,15 @@ export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) =
           </TabsContent>
 
           <TabsContent value="resume" className="p-4 space-y-4 mt-0">
-            <div className="rounded-xl border border-border p-4 bg-accent/30">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <h4 className="text-sm font-semibold">AI Resume Optimizer</h4>
+            {profile ? (
+              <ResumeOptimizer job={job} profile={profile} />
+            ) : (
+              <div className="rounded-xl border border-border p-4 bg-accent/30 text-center">
+                <Sparkles className="w-6 h-6 text-primary mx-auto mb-2" />
+                <p className="text-sm font-semibold text-foreground">Upload your resume first</p>
+                <p className="text-xs text-muted-foreground mt-1">Go to your Profile → Resume tab to upload and parse your resume, then come back here for AI optimization.</p>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Automatically tailor your resume for this specific role. Inserts relevant keywords, improves ATS compatibility for Greenhouse, Lever & Workday.
-              </p>
-              {!optimized ? (
-                <Button className="w-full gap-2" onClick={handleOptimize} disabled={optimizing}>
-                  {optimizing ? (
-                    <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Optimizing...</>
-                  ) : (
-                    <><Sparkles className="w-4 h-4" />Optimize Resume for This Job</>
-                  )}
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-score-high">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span className="text-sm font-medium">Resume optimized!</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1 gap-1.5">
-                      <Download className="w-3.5 h-3.5" />PDF
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 gap-1.5">
-                      <Download className="w-3.5 h-3.5" />DOCX
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="rounded-xl border border-border p-4 bg-accent/30">
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                <h4 className="text-sm font-semibold">Cover Letter Generator</h4>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">Generate a personalized cover letter using your resume and this job description.</p>
-              <Button variant="outline" className="w-full gap-2">
-                <MessageSquare className="w-4 h-4" />Generate Cover Letter
-              </Button>
-            </div>
+            )}
           </TabsContent>
 
           <TabsContent value="prep" className="p-4 space-y-4 mt-0">
