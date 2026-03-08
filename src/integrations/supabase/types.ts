@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          certifications: Json | null
+          created_at: string
+          current_title: string | null
+          desired_titles: string[] | null
+          education: Json | null
+          email: string | null
+          experience: Json | null
+          id: string
+          industries: string[] | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          preferred_locations: string[] | null
+          remote_preference: string | null
+          requires_visa_sponsorship: boolean | null
+          resume_file_name: string | null
+          resume_file_path: string | null
+          salary_max: number | null
+          salary_min: number | null
+          skills: string[] | null
+          summary: string | null
+          tools: string[] | null
+          updated_at: string
+          user_id: string
+          years_of_experience: number | null
+        }
+        Insert: {
+          certifications?: Json | null
+          created_at?: string
+          current_title?: string | null
+          desired_titles?: string[] | null
+          education?: Json | null
+          email?: string | null
+          experience?: Json | null
+          id?: string
+          industries?: string[] | null
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          preferred_locations?: string[] | null
+          remote_preference?: string | null
+          requires_visa_sponsorship?: boolean | null
+          resume_file_name?: string | null
+          resume_file_path?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          skills?: string[] | null
+          summary?: string | null
+          tools?: string[] | null
+          updated_at?: string
+          user_id: string
+          years_of_experience?: number | null
+        }
+        Update: {
+          certifications?: Json | null
+          created_at?: string
+          current_title?: string | null
+          desired_titles?: string[] | null
+          education?: Json | null
+          email?: string | null
+          experience?: Json | null
+          id?: string
+          industries?: string[] | null
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          preferred_locations?: string[] | null
+          remote_preference?: string | null
+          requires_visa_sponsorship?: boolean | null
+          resume_file_name?: string | null
+          resume_file_path?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          skills?: string[] | null
+          summary?: string | null
+          tools?: string[] | null
+          updated_at?: string
+          user_id?: string
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
