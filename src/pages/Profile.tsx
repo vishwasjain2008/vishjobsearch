@@ -226,8 +226,7 @@ const Profile: React.FC = () => {
               <CardHeader className="pb-4"><CardTitle className="text-sm font-bold">Resume Upload</CardTitle></CardHeader>
               <CardContent>
                 <ResumeUpload
-                  onUpload={handleUpload}
-                  onProfileParsed={handleProfileParsed}
+                  onComplete={handleResumeComplete}
                   uploaded={profile.resumeUploaded}
                   fileName={profile.resumeFileName}
                   userId={userId}
