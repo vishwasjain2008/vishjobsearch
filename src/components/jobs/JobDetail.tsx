@@ -26,7 +26,7 @@ const interviewQuestions = [
   { q: "What metrics would you track to measure the success of a new feature?", cat: "Product" },
 ];
 
-export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
+export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [optimizing, setOptimizing] = useState(false);
   const [optimized, setOptimized] = useState(false);
