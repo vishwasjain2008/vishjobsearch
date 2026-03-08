@@ -16,6 +16,7 @@ const Jobs: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [sortBy, setSortBy] = useState<"priority" | "match" | "recent">("priority");
   const [showFilters, setShowFilters] = useState(true);
+  const { profile } = useProfile();
 
   const filtered = useMemo(() => {
     let result = [...mockJobs];
