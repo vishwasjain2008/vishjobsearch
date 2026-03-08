@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { JobListing } from "@/types";
+import type { JobListing, CandidateProfile } from "@/types";
+import { ResumeOptimizer } from "@/components/jobs/ResumeOptimizer";
 import {
   X, MapPin, DollarSign, Clock, Wifi, Building2, ExternalLink,
-  FileText, MessageSquare, BookOpen, TrendingUp, ShieldCheck, ShieldQuestion, ShieldX,
-  CheckCircle2, AlertCircle, XCircle, Sparkles, Download, Star,
+  MessageSquare, BookOpen, ShieldCheck, ShieldQuestion, ShieldX,
+  CheckCircle2, AlertCircle, XCircle, Sparkles, Star,
 } from "lucide-react";
 
 interface JobDetailProps {
