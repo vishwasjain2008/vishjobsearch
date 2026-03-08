@@ -8,16 +8,14 @@ import { useToast } from "@/hooks/use-toast";
 import type { CandidateProfile } from "@/types";
 
 interface ResumeUploadProps {
-  onUpload: (fileName: string) => void;
-  onProfileParsed?: (partial: Partial<CandidateProfile>) => void;
+  /** Called once with the filename AND the AI-parsed profile — single atomic update, no race condition */
+  onComplete: (fileName: string, parsed?: Partial<CandidateProfile>) => void;
   uploaded: boolean;
   fileName?: string;
   userId?: string | null;
 }
 
 async function extractTextFromFile(file: File): Promise<string> {
-  // For plain-text extraction we read the file as text (works well for .txt/.md).
-  // For PDF/DOCX in a browser context we read as text — Gemini is resilient to some formatting noise.
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => resolve((e.target?.result as string) ?? "");
@@ -27,8 +25,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 }
 
 export const ResumeUpload: React.FC<ResumeUploadProps> = ({
-  onUpload,
-  onProfileParsed,
+  onComplete,
   uploaded,
   fileName,
   userId,
@@ -40,10 +37,9 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
   const { toast } = useToast();
 
   const handleFile = async (file: File) => {
-    const validTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
     const validExts = [".pdf", ".docx"];
-    const hasValidType = validTypes.includes(file.type) || validExts.some((e) => file.name.endsWith(e));
-    if (!hasValidType) {
+    const hasValidExt = validExts.some((e) => file.name.toLowerCase().endsWith(e));
+    if (!hasValidExt) {
       toast({ title: "Invalid file type", description: "Please upload a PDF or DOCX file.", variant: "destructive" });
       return;
     }
@@ -56,14 +52,14 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     setStage("uploading");
 
     try {
-      // Upload to Supabase Storage if logged in
+      // Upload to storage
       if (userId) {
         const path = `${userId}/${Date.now()}_${file.name}`;
         const { error: uploadErr } = await supabase.storage.from("resumes").upload(path, file, { upsert: true });
         if (uploadErr) throw new Error(uploadErr.message);
       }
 
-      // Extract text & call AI parse
+      // Extract text & call AI
       setStage("parsing");
       const resumeText = await extractTextFromFile(file);
 
@@ -86,28 +82,12 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
       }
 
       const { profile: parsed } = await res.json();
-
       setStage("done");
-      onUpload(file.name);
 
-      if (onProfileParsed && parsed) {
-        onProfileParsed({
-          name: parsed.name,
-          email: parsed.email,
-          phone: parsed.phone,
-          location: parsed.location,
-          currentTitle: parsed.currentTitle,
-          summary: parsed.summary,
-          yearsOfExperience: parsed.yearsOfExperience,
-          skills: parsed.skills ?? [],
-          tools: parsed.tools ?? [],
-          industries: parsed.industries ?? [],
-          experience: parsed.experience ?? [],
-          education: parsed.education ?? [],
-          certifications: parsed.certifications ?? [],
-        });
-        toast({ title: "✅ Resume parsed!", description: "Your profile has been auto-filled from your resume." });
-      }
+      // Single atomic callback — no race condition
+      onComplete(file.name, parsed ?? undefined);
+
+      toast({ title: "✅ Resume parsed!", description: "Your profile has been auto-filled from your resume." });
     } catch (e: any) {
       setStage("error");
       setErrorMsg(e.message ?? "Upload failed");
@@ -122,7 +102,10 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     if (file) handleFile(file);
   };
 
-  if ((uploaded || stage === "done") && stage !== "uploading" && stage !== "parsing") {
+  const isProcessing = stage === "uploading" || stage === "parsing";
+  const isDone = uploaded || stage === "done";
+
+  if (isDone && !isProcessing) {
     return (
       <div className="rounded-xl border border-border bg-muted/30 p-4 flex items-center gap-3">
         <CheckCircle2 className="w-5 h-5 text-score-high shrink-0" />
@@ -146,7 +129,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
         <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-destructive">Upload failed</p>
-          <p className="text-xs text-muted-foreground truncate">{errorMsg}</p>
+          <p className="text-xs text-muted-foreground">{errorMsg}</p>
         </div>
         <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setStage("idle"); inputRef.current?.click(); }}>
           Try Again
@@ -156,8 +139,6 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
       </div>
     );
   }
-
-  const isProcessing = stage === "uploading" || stage === "parsing";
 
   return (
     <div
