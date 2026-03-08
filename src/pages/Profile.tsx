@@ -7,28 +7,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { mockProfile } from "@/data/mockData";
 import type { CandidateProfile } from "@/types";
-import { User, Briefcase, GraduationCap, Award, MapPin, DollarSign, Plus, X, Check, Edit3 } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, MapPin, DollarSign, Plus, X, Edit3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useProfile } from "@/hooks/useProfile";
 
 const Profile: React.FC = () => {
-  const [profile, setProfile] = useState<CandidateProfile>(mockProfile);
-  const [editing, setEditing] = useState<string | null>(null);
+  const { profile, setProfile, userId } = useProfile();
   const [newSkill, setNewSkill] = useState("");
 
   const handleUpload = (fileName: string) => {
-    setProfile((p) => ({ ...p, resumeUploaded: true, resumeFileName: fileName }));
+    setProfile({ ...profile, resumeUploaded: true, resumeFileName: fileName });
   };
+
+  const handleProfileParsed = (parsed: Partial<CandidateProfile>) => {
+    setProfile({ ...profile, ...parsed, resumeUploaded: true });
+  };
+
+  const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profile, ...partial });
 
   const addSkill = () => {
     if (newSkill.trim() && !profile.skills.includes(newSkill.trim())) {
-      setProfile((p) => ({ ...p, skills: [...p.skills, newSkill.trim()] }));
+      update({ skills: [...profile.skills, newSkill.trim()] });
       setNewSkill("");
     }
   };
 
-  const removeSkill = (s: string) => setProfile((p) => ({ ...p, skills: p.skills.filter((sk) => sk !== s) }));
+  const removeSkill = (s: string) => update({ skills: profile.skills.filter((sk) => sk !== s) });
 
   const remoteOptions: { value: CandidateProfile["remotePreference"]; label: string }[] = [
     { value: "remote", label: "Remote Only" },
@@ -51,58 +56,28 @@ const Profile: React.FC = () => {
 
           <TabsContent value="profile" className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Basic info */}
               <Card className="lg:col-span-2">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-bold">Basic Information</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold">Basic Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs">Full Name</Label>
-                      <Input value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} className="mt-1 h-9 text-sm" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Current Job Title</Label>
-                      <Input value={profile.currentTitle} onChange={(e) => setProfile((p) => ({ ...p, currentTitle: e.target.value }))} className="mt-1 h-9 text-sm" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Email</Label>
-                      <Input value={profile.email} onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))} className="mt-1 h-9 text-sm" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Phone</Label>
-                      <Input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} className="mt-1 h-9 text-sm" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Location</Label>
-                      <Input value={profile.location} onChange={(e) => setProfile((p) => ({ ...p, location: e.target.value }))} className="mt-1 h-9 text-sm" />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Years of Experience</Label>
-                      <Input type="number" value={profile.yearsOfExperience} onChange={(e) => setProfile((p) => ({ ...p, yearsOfExperience: +e.target.value }))} className="mt-1 h-9 text-sm" />
-                    </div>
+                    <div><Label className="text-xs">Full Name</Label><Input value={profile.name} onChange={(e) => update({ name: e.target.value })} className="mt-1 h-9 text-sm" /></div>
+                    <div><Label className="text-xs">Current Job Title</Label><Input value={profile.currentTitle} onChange={(e) => update({ currentTitle: e.target.value })} className="mt-1 h-9 text-sm" /></div>
+                    <div><Label className="text-xs">Email</Label><Input value={profile.email} onChange={(e) => update({ email: e.target.value })} className="mt-1 h-9 text-sm" /></div>
+                    <div><Label className="text-xs">Phone</Label><Input value={profile.phone} onChange={(e) => update({ phone: e.target.value })} className="mt-1 h-9 text-sm" /></div>
+                    <div><Label className="text-xs">Location</Label><Input value={profile.location} onChange={(e) => update({ location: e.target.value })} className="mt-1 h-9 text-sm" /></div>
+                    <div><Label className="text-xs">Years of Experience</Label><Input type="number" value={profile.yearsOfExperience} onChange={(e) => update({ yearsOfExperience: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
                   </div>
-                  <div>
-                    <Label className="text-xs">Professional Summary</Label>
-                    <Textarea value={profile.summary} onChange={(e) => setProfile((p) => ({ ...p, summary: e.target.value }))} className="mt-1 text-sm min-h-[80px]" />
-                  </div>
+                  <div><Label className="text-xs">Professional Summary</Label><Textarea value={profile.summary} onChange={(e) => update({ summary: e.target.value })} className="mt-1 text-sm min-h-[80px]" /></div>
                 </CardContent>
               </Card>
 
-              {/* Industries */}
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-bold">Industries</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold">Industries</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex flex-wrap gap-1.5">
                     {profile.industries.map((ind) => (
-                      <Badge key={ind} variant="secondary" className="gap-1.5 pr-1">
-                        {ind}
-                        <button onClick={() => setProfile((p) => ({ ...p, industries: p.industries.filter((i) => i !== ind) }))}>
-                          <X className="w-3 h-3" />
-                        </button>
+                      <Badge key={ind} variant="secondary" className="gap-1.5 pr-1">{ind}
+                        <button onClick={() => update({ industries: profile.industries.filter((i) => i !== ind) })}><X className="w-3 h-3" /></button>
                       </Badge>
                     ))}
                   </div>
@@ -110,42 +85,26 @@ const Profile: React.FC = () => {
                     <Input placeholder="Add industry..." className="h-8 text-xs" id="ind-input" />
                     <Button size="sm" className="h-8 px-2" onClick={() => {
                       const el = document.getElementById("ind-input") as HTMLInputElement;
-                      if (el.value) { setProfile((p) => ({ ...p, industries: [...p.industries, el.value] })); el.value = ""; }
-                    }}>
-                      <Plus className="w-3.5 h-3.5" />
-                    </Button>
+                      if (el.value) { update({ industries: [...profile.industries, el.value] }); el.value = ""; }
+                    }}><Plus className="w-3.5 h-3.5" /></Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Skills */}
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-sm font-bold">Skills & Technologies ({profile.skills.length})</CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-4"><CardTitle className="text-sm font-bold">Skills & Technologies ({profile.skills.length})</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex flex-wrap gap-1.5">
                   {profile.skills.map((s) => (
-                    <Badge key={s} variant="secondary" className="gap-1.5 pr-1">
-                      {s}
-                      <button onClick={() => removeSkill(s)} className="hover:text-destructive transition-colors">
-                        <X className="w-3 h-3" />
-                      </button>
+                    <Badge key={s} variant="secondary" className="gap-1.5 pr-1">{s}
+                      <button onClick={() => removeSkill(s)} className="hover:text-destructive transition-colors"><X className="w-3 h-3" /></button>
                     </Badge>
                   ))}
                 </div>
                 <div className="flex gap-2 max-w-sm">
-                  <Input
-                    placeholder="Add skill..."
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addSkill()}
-                    className="h-8 text-xs"
-                  />
-                  <Button size="sm" className="h-8 px-2" onClick={addSkill}>
-                    <Plus className="w-3.5 h-3.5" />
-                  </Button>
+                  <Input placeholder="Add skill..." value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSkill()} className="h-8 text-xs" />
+                  <Button size="sm" className="h-8 px-2" onClick={addSkill}><Plus className="w-3.5 h-3.5" /></Button>
                 </div>
               </CardContent>
             </Card>
@@ -161,33 +120,22 @@ const Profile: React.FC = () => {
                       <p className="text-sm text-muted-foreground">{exp.company}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{exp.startDate} – {exp.endDate}</p>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Edit3 className="w-3.5 h-3.5" /></Button>
                   </div>
                   <ul className="mt-3 space-y-1">
                     {exp.description.map((d, j) => (
-                      <li key={j} className="text-xs text-muted-foreground flex gap-2">
-                        <span className="text-primary mt-0.5">•</span>{d}
-                      </li>
+                      <li key={j} className="text-xs text-muted-foreground flex gap-2"><span className="text-primary mt-0.5">•</span>{d}</li>
                     ))}
                   </ul>
                   <div className="flex flex-wrap gap-1 mt-3">
-                    {exp.skills.map((s) => (
-                      <span key={s} className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground text-xs">{s}</span>
-                    ))}
+                    {exp.skills.map((s) => (<span key={s} className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground text-xs">{s}</span>))}
                   </div>
                 </CardContent>
               </Card>
             ))}
 
-            {/* Education */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4" />Education
-                </CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><GraduationCap className="w-4 h-4" />Education</CardTitle></CardHeader>
               <CardContent className="space-y-2 px-4 pb-4">
                 {profile.education.map((ed, i) => (
                   <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
@@ -200,13 +148,8 @@ const Profile: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Certifications */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Award className="w-4 h-4" />Certifications
-                </CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><Award className="w-4 h-4" />Certifications</CardTitle></CardHeader>
               <CardContent className="space-y-2 px-4 pb-4">
                 {profile.certifications.map((cert, i) => (
                   <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
@@ -224,21 +167,14 @@ const Profile: React.FC = () => {
           <TabsContent value="preferences" className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                    <Briefcase className="w-4 h-4" />Job Preferences
-                  </CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold flex items-center gap-2"><Briefcase className="w-4 h-4" />Job Preferences</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <Label className="text-xs mb-2 block">Desired Job Titles</Label>
                     <div className="flex flex-wrap gap-1.5">
                       {profile.desiredTitles.map((t) => (
-                        <Badge key={t} variant="secondary" className="gap-1.5 pr-1">
-                          {t}
-                          <button onClick={() => setProfile((p) => ({ ...p, desiredTitles: p.desiredTitles.filter((dt) => dt !== t) }))}>
-                            <X className="w-3 h-3" />
-                          </button>
+                        <Badge key={t} variant="secondary" className="gap-1.5 pr-1">{t}
+                          <button onClick={() => update({ desiredTitles: profile.desiredTitles.filter((dt) => dt !== t) })}><X className="w-3 h-3" /></button>
                         </Badge>
                       ))}
                     </div>
@@ -247,13 +183,9 @@ const Profile: React.FC = () => {
                     <Label className="text-xs mb-2 block">Remote Preference</Label>
                     <div className="flex flex-wrap gap-1.5">
                       {remoteOptions.map(({ value, label }) => (
-                        <button
-                          key={value}
-                          onClick={() => setProfile((p) => ({ ...p, remotePreference: value }))}
+                        <button key={value} onClick={() => update({ remotePreference: value })}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${profile.remotePreference === value ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/50"}`}
-                        >
-                          {label}
-                        </button>
+                        >{label}</button>
                       ))}
                     </div>
                   </div>
@@ -261,11 +193,8 @@ const Profile: React.FC = () => {
                     <Label className="text-xs mb-2 block">Preferred Locations</Label>
                     <div className="flex flex-wrap gap-1.5">
                       {profile.preferredLocations.map((loc) => (
-                        <Badge key={loc} variant="secondary" className="gap-1.5 pr-1">
-                          <MapPin className="w-3 h-3" />{loc}
-                          <button onClick={() => setProfile((p) => ({ ...p, preferredLocations: p.preferredLocations.filter((l) => l !== loc) }))}>
-                            <X className="w-3 h-3" />
-                          </button>
+                        <Badge key={loc} variant="secondary" className="gap-1.5 pr-1"><MapPin className="w-3 h-3" />{loc}
+                          <button onClick={() => update({ preferredLocations: profile.preferredLocations.filter((l) => l !== loc) })}><X className="w-3 h-3" /></button>
                         </Badge>
                       ))}
                     </div>
@@ -274,40 +203,15 @@ const Profile: React.FC = () => {
               </Card>
 
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />Compensation & Visa
-                  </CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold flex items-center gap-2"><DollarSign className="w-4 h-4" />Compensation & Visa</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs">Min Salary ($)</Label>
-                      <Input
-                        type="number"
-                        value={profile.salaryMin}
-                        onChange={(e) => setProfile((p) => ({ ...p, salaryMin: +e.target.value }))}
-                        className="mt-1 h-9 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Max Salary ($)</Label>
-                      <Input
-                        type="number"
-                        value={profile.salaryMax}
-                        onChange={(e) => setProfile((p) => ({ ...p, salaryMax: +e.target.value }))}
-                        className="mt-1 h-9 text-sm"
-                      />
-                    </div>
+                    <div><Label className="text-xs">Min Salary ($)</Label><Input type="number" value={profile.salaryMin} onChange={(e) => update({ salaryMin: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
+                    <div><Label className="text-xs">Max Salary ($)</Label><Input type="number" value={profile.salaryMax} onChange={(e) => update({ salaryMax: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
                   </div>
                   <div className="rounded-lg border border-border p-3">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={profile.requiresVisaSponsorship}
-                        onChange={(e) => setProfile((p) => ({ ...p, requiresVisaSponsorship: e.target.checked }))}
-                        className="w-4 h-4 accent-primary"
-                      />
+                      <input type="checkbox" checked={profile.requiresVisaSponsorship} onChange={(e) => update({ requiresVisaSponsorship: e.target.checked })} className="w-4 h-4 accent-primary" />
                       <div>
                         <p className="text-sm font-medium text-foreground">I require visa sponsorship</p>
                         <p className="text-xs text-muted-foreground">Filter for H-1B friendly companies</p>
@@ -321,11 +225,15 @@ const Profile: React.FC = () => {
 
           <TabsContent value="resume" className="space-y-6 animate-fade-in">
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-sm font-bold">Resume Upload</CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-4"><CardTitle className="text-sm font-bold">Resume Upload</CardTitle></CardHeader>
               <CardContent>
-                <ResumeUpload onUpload={handleUpload} uploaded={profile.resumeUploaded} fileName={profile.resumeFileName} />
+                <ResumeUpload
+                  onUpload={handleUpload}
+                  onProfileParsed={handleProfileParsed}
+                  uploaded={profile.resumeUploaded}
+                  fileName={profile.resumeFileName}
+                  userId={userId}
+                />
               </CardContent>
             </Card>
           </TabsContent>

@@ -9,12 +9,14 @@ import { mockJobs } from "@/data/mockData";
 import type { JobListing } from "@/types";
 import { RefreshCw, Sliders } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useProfile } from "@/hooks/useProfile";
 
 const Jobs: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [sortBy, setSortBy] = useState<"priority" | "match" | "recent">("priority");
   const [showFilters, setShowFilters] = useState(true);
+  const { profile } = useProfile();
 
   const filtered = useMemo(() => {
     let result = [...mockJobs];
@@ -111,7 +113,7 @@ const Jobs: React.FC = () => {
           {/* Job detail panel */}
           {selectedJob && (
             <div className="w-[45%] max-w-md shrink-0 border-l border-border overflow-hidden">
-              <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} />
+              <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} profile={profile} />
             </div>
           )}
         </div>
