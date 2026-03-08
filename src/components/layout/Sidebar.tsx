@@ -20,6 +20,7 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const signOut = () => supabase.auth.signOut();
   const location = useLocation();
 
   return (
