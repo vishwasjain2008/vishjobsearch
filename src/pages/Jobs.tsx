@@ -113,7 +113,7 @@ const Jobs: React.FC = () => {
           {/* Job detail panel */}
           {selectedJob && (
             <div className="w-[45%] max-w-md shrink-0 border-l border-border overflow-hidden">
-              <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} />
+              <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} profile={profile} />
             </div>
           )}
         </div>
