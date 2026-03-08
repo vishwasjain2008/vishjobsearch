@@ -16,12 +16,10 @@ const Profile: React.FC = () => {
   const { profile, setProfile, userId } = useProfile();
   const [newSkill, setNewSkill] = useState("");
 
-  const handleUpload = (fileName: string) => {
-    setProfile({ ...profile, resumeUploaded: true, resumeFileName: fileName });
-  };
-
-  const handleProfileParsed = (parsed: Partial<CandidateProfile>) => {
-    setProfile({ ...profile, ...parsed, resumeUploaded: true });
+  // Single atomic handler — avoids the race condition where two separate callbacks
+  // would each capture a stale `profile` snapshot and the second save would overwrite the first.
+  const handleResumeComplete = (fileName: string, parsed?: Partial<CandidateProfile>) => {
+    setProfile({ ...profile, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
   };
 
   const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profile, ...partial });
