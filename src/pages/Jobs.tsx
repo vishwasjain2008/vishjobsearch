@@ -9,6 +9,7 @@ import { mockJobs } from "@/data/mockData";
 import type { JobListing } from "@/types";
 import { RefreshCw, Sliders } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useProfile } from "@/hooks/useProfile";
 
 const Jobs: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
