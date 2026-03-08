@@ -15,6 +15,7 @@ import {
 interface JobDetailProps {
   job: JobListing | null;
   onClose: () => void;
+  profile?: CandidateProfile;
 }
 
 const interviewQuestions = [
