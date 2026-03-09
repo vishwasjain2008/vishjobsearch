@@ -61,7 +61,8 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   const pipeMatch = rawTitle.match(/^(.+?)\s*[|–-]\s*(.+?)\s*(?:job|career|role)?$/i);
 
   // Extract company from ATS URL path: jobs.lever.co/company/... or job-boards.greenhouse.io/company/...
-  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i);
+  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i)
+    ?? url.match(/^https?:\/\/([a-z0-9_-]+)\.wd\d+\.myworkdayjobs\.com\//i);
 
   if (atMatch) {
     title = cleanATSName(atMatch[1].trim());
