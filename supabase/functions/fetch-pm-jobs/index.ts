@@ -137,9 +137,16 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   // Timing tag based on URL freshness heuristics
   const timingTag: JobResult["timingTag"] = idx < 5 ? "new" : idx < 15 ? "early" : "recent";
 
-  // Match/priority scores (heuristic based on skills found)
+  // Visa sponsorship detection from description text
+  const visaFriendlyRegex = /sponsor(s|ed|ing)?\s+(visa|work\s*auth|h[-\s]?1b)|will\s+sponsor|visa\s+sponsor(ship)?|h[-\s]?1b\s+sponsor|open\s+to\s+sponsor|support(s)?\s+visa|immigration\s+support/i;
+  const visaRarelyRegex = /not\s+(able|eligible|authorized)\s+to\s+sponsor|no\s+visa\s+sponsor|unable\s+to\s+sponsor|cannot\s+sponsor|does\s+not\s+sponsor|sponsorship\s+not\s+(available|provided)|must\s+be\s+(authorized|eligible)\s+to\s+work|must\s+not\s+require\s+sponsor/i;
+  const visaStatus: JobResult["visaStatus"] =
+    visaFriendlyRegex.test(combinedText) ? "friendly" :
+    visaRarelyRegex.test(combinedText) ? "rarely" : "unknown";
+
+  // Match/priority scores — boost visa-friendly jobs
   const matchScore = Math.min(95, 65 + strongMatchSkills.length * 5);
-  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0));
+  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + (visaStatus === "friendly" ? 10 : 0));
 
   // Industry guess
   const industryMap: [RegExp, string][] = [
