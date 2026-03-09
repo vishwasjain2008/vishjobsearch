@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
+import type { JobListing as JobListingType } from "@/types";
+
+// Build a LinkedIn job search URL so the link goes to the real filtered listing
+const buildApplyUrl = (job: JobListingType) =>
+  `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&f_C=&origin=JOBS_HOME_SEARCH_BUTTON`;
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
