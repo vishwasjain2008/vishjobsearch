@@ -137,9 +137,16 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   // Timing tag based on URL freshness heuristics
   const timingTag: JobResult["timingTag"] = idx < 5 ? "new" : idx < 15 ? "early" : "recent";
 
-  // Match/priority scores (heuristic based on skills found)
+  // Visa sponsorship detection from description text
+  const visaFriendlyRegex = /sponsor(s|ed|ing)?\s+(visa|work\s*auth|h[-\s]?1b)|will\s+sponsor|visa\s+sponsor(ship)?|h[-\s]?1b\s+sponsor|open\s+to\s+sponsor|support(s)?\s+visa|immigration\s+support/i;
+  const visaRarelyRegex = /not\s+(able|eligible|authorized)\s+to\s+sponsor|no\s+visa\s+sponsor|unable\s+to\s+sponsor|cannot\s+sponsor|does\s+not\s+sponsor|sponsorship\s+not\s+(available|provided)|must\s+be\s+(authorized|eligible)\s+to\s+work|must\s+not\s+require\s+sponsor/i;
+  const visaStatus: JobResult["visaStatus"] =
+    visaFriendlyRegex.test(combinedText) ? "friendly" :
+    visaRarelyRegex.test(combinedText) ? "rarely" : "unknown";
+
+  // Match/priority scores — boost visa-friendly jobs
   const matchScore = Math.min(95, 65 + strongMatchSkills.length * 5);
-  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0));
+  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + (visaStatus === "friendly" ? 10 : 0));
 
   // Industry guess
   const industryMap: [RegExp, string][] = [
@@ -182,7 +189,7 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     matchScore,
     priorityScore,
     competitionLevel: matchScore >= 85 ? "low" : matchScore >= 75 ? "medium" : "high",
-    visaStatus: "unknown",
+    visaStatus,
     timingTag,
     strongMatchSkills,
     partialMatchSkills: [],
@@ -206,8 +213,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search queries to cast a wide net across job boards
+    // Search queries — visa-sponsorship queries first for priority ordering
     const queries = [
+      // Visa-sponsorship queries first — results parsed first get lower idx → higher priority scores
+      "Product Manager \"visa sponsorship\" OR \"sponsor visa\" OR \"H1B\" site:greenhouse.io OR site:lever.co",
+      "Senior Product Manager \"will sponsor\" OR \"visa sponsored\" OR \"open to sponsorship\" site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager \"H-1B\" OR \"immigration support\" OR \"work authorization\" sponsor site:lever.co OR site:greenhouse.io",
+      // General PM queries
       "Senior Product Manager job opening 2025 site:greenhouse.io OR site:lever.co",
       "Product Manager hiring now site:ashbyhq.com OR site:workday.com",
       "Senior PM role apply site:jobs.lever.co OR site:boards.greenhouse.io",
@@ -215,7 +227,6 @@ Deno.serve(async (req) => {
       "Director of Product Management hiring 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager job site:greenhouse.io OR site:lever.co",
       "Product Manager fintech banking site:ashbyhq.com OR site:greenhouse.io",
-      "Group Product Manager OR Staff Product Manager site:lever.co OR site:greenhouse.io",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
@@ -259,7 +270,12 @@ Deno.serve(async (req) => {
     // Parse into job listings
     const jobs: JobResult[] = unique
       .map((r, i) => parseJobFromResult(r, i))
-      .filter((j): j is JobResult => j !== null);
+      .filter((j): j is JobResult => j !== null)
+      // Sort: visa-friendly first, then unknown, then rarely
+      .sort((a, b) => {
+        const rank = { friendly: 0, unknown: 1, rarely: 2 };
+        return rank[a.visaStatus] - rank[b.visaStatus];
+      });
 
     console.log(`Fetched ${unique.length} results → parsed ${jobs.length} PM jobs`);
 
