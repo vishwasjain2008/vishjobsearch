@@ -63,10 +63,10 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
         if (uploadErr) throw new Error(uploadErr.message);
       }
 
-      // Extract text & call AI
+      // Extract as base64 & call AI vision parser
       setStage("parsing");
-      const resumeText = await extractTextFromFile(file);
-
+      const fileBase64 = await fileToBase64(file);
+      const mimeType = file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       const { data: { session } } = await supabase.auth.getSession();
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
