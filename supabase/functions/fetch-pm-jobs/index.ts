@@ -215,6 +215,11 @@ Deno.serve(async (req) => {
 
     // Search queries — visa-sponsorship queries first for priority ordering
     const queries = [
+      // Visa-sponsorship queries first — results parsed first get lower idx → higher priority scores
+      "Product Manager \"visa sponsorship\" OR \"sponsor visa\" OR \"H1B\" site:greenhouse.io OR site:lever.co",
+      "Senior Product Manager \"will sponsor\" OR \"visa sponsored\" OR \"open to sponsorship\" site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager \"H-1B\" OR \"immigration support\" OR \"work authorization\" sponsor site:lever.co OR site:greenhouse.io",
+      // General PM queries
       "Senior Product Manager job opening 2025 site:greenhouse.io OR site:lever.co",
       "Product Manager hiring now site:ashbyhq.com OR site:workday.com",
       "Senior PM role apply site:jobs.lever.co OR site:boards.greenhouse.io",
@@ -222,7 +227,6 @@ Deno.serve(async (req) => {
       "Director of Product Management hiring 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager job site:greenhouse.io OR site:lever.co",
       "Product Manager fintech banking site:ashbyhq.com OR site:greenhouse.io",
-      "Group Product Manager OR Staff Product Manager site:lever.co OR site:greenhouse.io",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
