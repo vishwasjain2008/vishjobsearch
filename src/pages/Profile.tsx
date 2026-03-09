@@ -15,14 +15,15 @@ import { useProfile } from "@/hooks/useProfile";
 const Profile: React.FC = () => {
   const { profile, setProfile, userId } = useProfile();
   const [newSkill, setNewSkill] = useState("");
+  // Use a ref so the resume callback always captures the latest profile state
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
 
-  // Single atomic handler — avoids the race condition where two separate callbacks
-  // would each capture a stale `profile` snapshot and the second save would overwrite the first.
   const handleResumeComplete = (fileName: string, parsed?: Partial<CandidateProfile>) => {
-    setProfile({ ...profile, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
+    setProfile({ ...profileRef.current, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
   };
 
-  const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profile, ...partial });
+  const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profileRef.current, ...partial });
 
   const addSkill = () => {
     if (newSkill.trim() && !profile.skills.includes(newSkill.trim())) {
