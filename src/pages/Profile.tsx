@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CandidateProfile } from "@/types";
-import { User, Briefcase, GraduationCap, Award, MapPin, Plus, X, Edit3 } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, MapPin, Plus, X, Edit3, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
@@ -16,11 +16,19 @@ import { cn } from "@/lib/utils";
 const Profile: React.FC = () => {
   const { profile, setProfile, userId } = useProfile();
   const [newSkill, setNewSkill] = useState("");
+  const [activeTab, setActiveTab] = useState("profile");
+  const [parsedBanner, setParsedBanner] = useState(false);
   const profileRef = useRef(profile);
   profileRef.current = profile;
 
   const handleResumeComplete = (fileName: string, parsed?: Partial<CandidateProfile>) => {
     setProfile({ ...profileRef.current, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
+    if (parsed) {
+      // Auto-navigate to profile tab and show confirmation banner
+      setActiveTab("profile");
+      setParsedBanner(true);
+      setTimeout(() => setParsedBanner(false), 6000);
+    }
   };
 
   const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profileRef.current, ...partial });
