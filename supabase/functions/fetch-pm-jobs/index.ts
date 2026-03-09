@@ -61,7 +61,8 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   const pipeMatch = rawTitle.match(/^(.+?)\s*[|–-]\s*(.+?)\s*(?:job|career|role)?$/i);
 
   // Extract company from ATS URL path: jobs.lever.co/company/... or job-boards.greenhouse.io/company/...
-  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i);
+  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i)
+    ?? url.match(/^https?:\/\/([a-z0-9_-]+)\.wd\d+\.myworkdayjobs\.com\//i);
 
   if (atMatch) {
     title = cleanATSName(atMatch[1].trim());
@@ -168,6 +169,7 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     [/greenhouse\.io/i, "Greenhouse"],
     [/lever\.co/i, "Lever"],
     [/ashbyhq\.com/i, "Ashby"],
+    [/myworkdayjobs\.com/i, "Workday"],
     [/workday\.com/i, "Workday"],
     [/icims\.com/i, "iCIMS"],
     [/smartrecruiters\.com/i, "SmartRecruiters"],
@@ -225,12 +227,15 @@ Deno.serve(async (req) => {
       "Product Manager \"immigration support\" OR \"work authorization sponsor\" USA site:lever.co OR site:greenhouse.io",
       // General US-only PM queries
       "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
-      "Product Manager hiring United States site:ashbyhq.com OR site:workday.com",
+      "Product Manager hiring United States site:ashbyhq.com OR site:myworkdayjobs.com",
       "Senior PM role United States apply site:jobs.lever.co OR site:boards.greenhouse.io",
       "Principal Product Manager United States site:icims.com OR site:smartrecruiters.com",
       "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
-      "Product Manager fintech United States site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager fintech United States site:ashbyhq.com OR site:myworkdayjobs.com",
+      // Workday-specific queries to maximize coverage of company Workday portals
+      "Senior Product Manager United States site:myworkdayjobs.com",
+      "Product Manager United States 2025 site:myworkdayjobs.com",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
