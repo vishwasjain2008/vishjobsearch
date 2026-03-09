@@ -1,12 +1,11 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { JobListing } from "@/types";
 import {
-  MapPin, Clock, DollarSign, Wifi, Building2, TrendingUp,
-  Star, ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX,
+  MapPin, Clock, DollarSign, Wifi, Building2,
+  ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX,
 } from "lucide-react";
 
 // Use the direct apply link from the job listing (Greenhouse/Lever/Ashby/Workday direct URLs)
