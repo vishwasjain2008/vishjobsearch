@@ -118,6 +118,8 @@ const Jobs: React.FC = () => {
 
   const newCount = jobs.filter((j) => j.timingTag === "new").length;
   const earlyCount = jobs.filter((j) => j.timingTag === "early").length;
+  const hasProfile = profile.skills.length > 0 || profile.tools.length > 0;
+  const dupesRemoved = rawJobs.length - jobs.length;
 
   const cacheLabel = cachedAt
     ? cacheAgeDays !== null && cacheAgeDays < 1
@@ -131,7 +133,7 @@ const Jobs: React.FC = () => {
     <div className="flex flex-col h-full">
       <Header
         title="Job Discovery"
-        subtitle={`${jobs.length} jobs · ${newCount} new today · ${earlyCount} early opportunities`}
+        subtitle={`${jobs.length} jobs${dupesRemoved > 0 ? ` (${dupesRemoved} dupes removed)` : ""} · ${newCount} new today · ${earlyCount} early opportunities${hasProfile ? " · scored against your profile" : ""}`}
       />
 
       <div className="flex flex-1 min-h-0">
