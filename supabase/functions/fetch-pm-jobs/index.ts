@@ -227,12 +227,15 @@ Deno.serve(async (req) => {
       "Product Manager \"immigration support\" OR \"work authorization sponsor\" USA site:lever.co OR site:greenhouse.io",
       // General US-only PM queries
       "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
-      "Product Manager hiring United States site:ashbyhq.com OR site:workday.com",
+      "Product Manager hiring United States site:ashbyhq.com OR site:myworkdayjobs.com",
       "Senior PM role United States apply site:jobs.lever.co OR site:boards.greenhouse.io",
       "Principal Product Manager United States site:icims.com OR site:smartrecruiters.com",
       "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
-      "Product Manager fintech United States site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager fintech United States site:ashbyhq.com OR site:myworkdayjobs.com",
+      // Workday-specific queries to maximize coverage of company Workday portals
+      "Senior Product Manager United States site:myworkdayjobs.com",
+      "Product Manager United States 2025 site:myworkdayjobs.com",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
