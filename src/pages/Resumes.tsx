@@ -3,18 +3,21 @@ import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { mockProfile } from "@/data/mockData";
-import { FileText, Plus, Download, Copy, Star, Trash2, Edit3, Sparkles } from "lucide-react";
-
-const resumeVersions = [
-  { id: "r1", name: "Original Resume", createdAt: "2024-01-01", targetJob: null, tags: ["Base"] },
-  { id: "r2", name: "Analytics Engineer Focus", createdAt: "2024-01-15", targetJob: "Analytics Engineer at Stripe", tags: ["Tailored", "FinTech"] },
-  { id: "r3", name: "Marketing Analytics", createdAt: "2024-01-20", targetJob: "Marketing Analyst at Shopify", tags: ["Tailored", "Marketing"] },
-  { id: "r4", name: "Product Analyst Version", createdAt: "2024-01-22", targetJob: "Product Analyst at Notion", tags: ["Tailored", "Product"] },
-];
+import { FileText, Plus, Download, Star, Edit3, Sparkles } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 const Resumes: React.FC = () => {
+  const { profile } = useProfile();
   const [selected, setSelected] = useState("r1");
+
+  const firstName = profile.name?.split(" ")[0] || "Your";
+
+  const resumeVersions = [
+    { id: "r1", name: "Base Resume", createdAt: "2024-01-01", targetJob: null, tags: ["Base"] },
+    { id: "r2", name: "Senior PM – Tech Focus", createdAt: "2024-01-15", targetJob: "Senior Product Manager at Google", tags: ["Tailored", "Big Tech"] },
+    { id: "r3", name: "Growth PM Version", createdAt: "2024-01-20", targetJob: "Senior PM – Growth at Airbnb", tags: ["Tailored", "Growth"] },
+    { id: "r4", name: "FinTech PM Version", createdAt: "2024-01-22", targetJob: "Senior PM – Payments at Stripe", tags: ["Tailored", "FinTech"] },
+  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -73,7 +76,7 @@ const Resumes: React.FC = () => {
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-muted-foreground">AI-Tailored Resume</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Select a job to auto-generate</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Select a PM job to auto-generate</p>
             </div>
           </div>
         </div>

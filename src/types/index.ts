@@ -36,7 +36,7 @@ export interface CandidateProfile {
   certifications: Certification[];
   desiredTitles: string[];
   preferredLocations: string[];
-  remotePreference: "remote" | "hybrid" | "onsite" | "flexible";
+  remotePreference: ("remote" | "hybrid" | "onsite" | "flexible")[];
   salaryMin: number;
   salaryMax: number;
   requiresVisaSponsorship: boolean;
