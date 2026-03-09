@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search queries to cast a wide net across job boards
+    // Search queries — visa-sponsorship queries first for priority ordering
     const queries = [
       "Senior Product Manager job opening 2025 site:greenhouse.io OR site:lever.co",
       "Product Manager hiring now site:ashbyhq.com OR site:workday.com",
