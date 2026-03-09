@@ -61,10 +61,35 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   const pipeMatch = rawTitle.match(/^(.+?)\s*[|–-]\s*(.+?)\s*(?:job|career|role)?$/i);
 
   // Extract company from ATS URL path: jobs.lever.co/company/... or job-boards.greenhouse.io/company/...
-  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i)
-    ?? url.match(/^https?:\/\/([a-z0-9_-]+)\.wd\d+\.myworkdayjobs\.com\//i);
+  const atsPathCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i);
 
-  if (atMatch) {
+  // For Workday: subdomain is often the company (stripe.wd1.myworkdayjobs.com)
+  // but many companies use generic subdomains (careers, remote, jobs) — detect those
+  const genericSubdomains = /^(careers|jobs|remote|external|internal|apply|portal|recruit|hiring|talent|work|team|ingredients|corporate|hr)$/i;
+  const workdaySubdomainMatch = url.match(/^https?:\/\/([a-z0-9_-]+)\.wd\d+\.myworkdayjobs\.com\//i);
+  // Also try to extract company from URL path segment after language code: /en-US/CompanyName/job/...
+  const workdayPathCompanyMatch = url.match(/myworkdayjobs\.com\/[a-z-]+\/([A-Za-z0-9_-]+(?:\s[A-Za-z0-9_-]+)?)\//i);
+
+  const isGenericWorkdaySubdomain = workdaySubdomainMatch && genericSubdomains.test(workdaySubdomainMatch[1]);
+  const atsCompanyMatch = atsPathCompanyMatch ?? workdaySubdomainMatch;
+
+  // For Workday URLs, determine company from subdomain or path
+  if (workdaySubdomainMatch) {
+    // If subdomain is a real company name (not generic), use it
+    const subdomainCompany = workdaySubdomainMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    if (!isGenericWorkdaySubdomain) {
+      company = subdomainCompany;
+    } else if (workdayPathCompanyMatch) {
+      // Try path-based company name for generic subdomains
+      company = workdayPathCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    } else {
+      // Fall back to title parsing for generic subdomains
+      company = subdomainCompany; // will be overridden below if title has better info
+    }
+    // Extract clean title from title patterns
+    if (atMatch) title = cleanATSName(atMatch[1].trim());
+    else if (pipeMatch) title = cleanATSName(pipeMatch[1].trim());
+  } else if (atMatch) {
     title = cleanATSName(atMatch[1].trim());
     company = cleanATSName(atMatch[2].trim());
   } else if (pipeMatch) {
@@ -80,9 +105,9 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
-  // Override with URL slug if company resolved to an ATS platform name or is unknown
+  // Override with URL slug if company resolved to an ATS platform name or is unknown (non-Workday URLs)
   const atsPlatformNames = /^(greenhouse|lever|ashby|workday|icims|smartrecruiters|unknown)$/i;
-  if ((company === "Unknown" || company === "" || atsPlatformNames.test(company)) && atsCompanyMatch) {
+  if (!workdaySubdomainMatch && (company === "Unknown" || company === "" || atsPlatformNames.test(company)) && atsCompanyMatch) {
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
