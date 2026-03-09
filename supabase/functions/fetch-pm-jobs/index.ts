@@ -49,7 +49,7 @@ function cleanATSName(name: string): string {
 }
 
 // Derive structured fields from a search result
-function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResult | null {
+function parseJobFromResult(result: SearchResult, idx: number): JobResult | null {
   const { url, title: rawTitle, description } = result;
   if (!url || !rawTitle || !description) return null;
 
