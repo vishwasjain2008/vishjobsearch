@@ -191,21 +191,8 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
   );
 };
 
-// Use the direct apply link from the job listing (Greenhouse/Lever/Ashby/Workday direct URLs)
-const buildApplyUrl = (job: JobListing): string => {
-  if (job.applyLink && job.applyLink.startsWith("http")) return job.applyLink;
-  // Fallback only if no direct link
-  const q = encodeURIComponent(`${job.title} ${job.company}`);
-  return `https://www.google.com/search?q=${q}&ibp=htl;jobs`;
-};
 
-interface JobCardProps {
-  job: JobListing;
-  onSelect: (job: JobListing) => void;
-  compact?: boolean;
-}
 
-const ScoreBadge = ({ score, label }: { score: number; label: string }) => {
   const color = score >= 80 ? "text-score-high" : score >= 65 ? "text-score-medium" : "text-score-low";
   const bg = score >= 80 ? "bg-success/10" : score >= 65 ? "bg-warning/10" : "bg-destructive/10";
   return (
