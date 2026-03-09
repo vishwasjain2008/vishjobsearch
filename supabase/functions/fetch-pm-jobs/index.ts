@@ -270,7 +270,12 @@ Deno.serve(async (req) => {
     // Parse into job listings
     const jobs: JobResult[] = unique
       .map((r, i) => parseJobFromResult(r, i))
-      .filter((j): j is JobResult => j !== null);
+      .filter((j): j is JobResult => j !== null)
+      // Sort: visa-friendly first, then unknown, then rarely
+      .sort((a, b) => {
+        const rank = { friendly: 0, unknown: 1, rarely: 2 };
+        return rank[a.visaStatus] - rank[b.visaStatus];
+      });
 
     console.log(`Fetched ${unique.length} results → parsed ${jobs.length} PM jobs`);
 
