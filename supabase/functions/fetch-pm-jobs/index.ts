@@ -135,7 +135,6 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
 
   // Source from URL
   const sourceMap: [RegExp, string][] = [
-    [/linkedin/i, "LinkedIn"],
     [/indeed/i, "Indeed"],
     [/glassdoor/i, "Glassdoor"],
     [/lever\.co|greenhouse\.io|workday|icims|smartrecruiters|ashby/i, "Company Website"],
