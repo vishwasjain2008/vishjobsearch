@@ -74,6 +74,8 @@ export interface JobListing {
   missingSkills: string[];
   industry: string;
   seniority: string;
+  /** True if company appears in the USCIS H1B employer data hub sponsor list */
+  isKnownH1BSponsor?: boolean;
 }
 
 export interface ApplicationNote {

@@ -5,13 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { JobListing } from "@/types";
 import {
   MapPin, Clock, DollarSign, Wifi, Building2,
-  ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX,
+  ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX, Star,
 } from "lucide-react";
+import { isKnownH1BSponsor } from "@/lib/h1bSponsors";
 
-// Use the direct apply link from the job listing (Greenhouse/Lever/Ashby/Workday direct URLs)
 const buildApplyUrl = (job: JobListing): string => {
   if (job.applyLink && job.applyLink.startsWith("http")) return job.applyLink;
-  // Fallback only if no direct link
   const q = encodeURIComponent(`${job.title} ${job.company}`);
   return `https://www.google.com/search?q=${q}&ibp=htl;jobs`;
 };
@@ -33,17 +32,35 @@ const ScoreBadge = ({ score, label }: { score: number; label: string }) => {
   );
 };
 
-const VisaBadge = ({ status }: { status: JobListing["visaStatus"] }) => {
-  const map = {
-    friendly: { icon: ShieldCheck, color: "text-visa-friendly", bg: "bg-success/10", label: "Visa Friendly" },
-    unknown: { icon: ShieldQuestion, color: "text-visa-unknown", bg: "bg-muted", label: "Unknown" },
-    rarely: { icon: ShieldX, color: "text-visa-rarely", bg: "bg-destructive/10", label: "Rarely Sponsors" },
-  };
-  const { icon: Icon, color, bg, label } = map[status];
+const VisaBadge = ({ status, knownSponsor }: { status: JobListing["visaStatus"]; knownSponsor: boolean }) => {
+  if (status === "rarely") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-visa-rarely">
+        <ShieldX className="w-3 h-3" />
+        Rarely Sponsors
+      </span>
+    );
+  }
+  if (knownSponsor) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-visa-friendly border border-success/30">
+        <Star className="w-3 h-3 fill-current" />
+        Known H1B Sponsor
+      </span>
+    );
+  }
+  if (status === "friendly") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success/10 text-visa-friendly">
+        <ShieldCheck className="w-3 h-3" />
+        Visa Friendly
+      </span>
+    );
+  }
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium", bg, color)}>
-      <Icon className="w-3 h-3" />
-      {label}
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-visa-unknown">
+      <ShieldQuestion className="w-3 h-3" />
+      Unknown
     </span>
   );
 };
@@ -70,17 +87,26 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
   const salary = formatSalary(job.salaryMin, job.salaryMax);
   const hoursAgo = Math.round((Date.now() - new Date(job.postedDate).getTime()) / 36e5);
   const timeLabel = hoursAgo < 1 ? "Just now" : hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.floor(hoursAgo / 24)}d ago`;
+  const knownSponsor = isKnownH1BSponsor(job.company);
 
   return (
     <Card
-      className="group cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 animate-fade-in"
+      className={cn(
+        "group cursor-pointer hover:shadow-md transition-all duration-200 animate-fade-in",
+        knownSponsor
+          ? "border-success/40 hover:border-success/60 ring-1 ring-success/20"
+          : "hover:border-primary/30"
+      )}
       onClick={() => onSelect(job)}
     >
       <CardContent className={cn("p-4", compact && "p-3")}>
         {/* Header row */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center shrink-0 border border-border">
-            <Building2 className="w-5 h-5 text-accent-foreground" />
+          <div className={cn(
+            "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
+            knownSponsor ? "bg-success/10 border-success/30" : "bg-accent border-border"
+          )}>
+            <Building2 className={cn("w-5 h-5", knownSponsor ? "text-visa-friendly" : "text-accent-foreground")} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -121,7 +147,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
             <Clock className="w-3 h-3" />
             {timeLabel}
           </span>
-          <VisaBadge status={job.visaStatus} />
+          <VisaBadge status={job.visaStatus} knownSponsor={knownSponsor} />
         </div>
 
         {/* Skills */}
