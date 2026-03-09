@@ -3,15 +3,16 @@ import { Header } from "@/components/layout/Header";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobFilters, FilterState, defaultFilters } from "@/components/jobs/JobFilters";
 import { JobDetail } from "@/components/jobs/JobDetail";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { mockJobs } from "@/data/mockData";
 import type { JobListing } from "@/types";
-import { RefreshCw, Sliders, Wifi, WifiOff } from "lucide-react";
+import { RefreshCw, Sliders, Wifi, WifiOff, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const CACHE_TTL_DAYS = 10;
 
 const Jobs: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
@@ -20,36 +21,62 @@ const Jobs: React.FC = () => {
   const [showFilters, setShowFilters] = useState(true);
   const { profile } = useProfile();
 
-  const [jobs, setJobs] = useState<JobListing[]>(mockJobs);
+  const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [isLive, setIsLive] = useState(false);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
+  const [nextRefreshDays, setNextRefreshDays] = useState<number | null>(null);
+  const [showRefreshWarning, setShowRefreshWarning] = useState(false);
 
-  const fetchRealJobs = useCallback(async () => {
+  const cacheAgeDays = cachedAt
+    ? (Date.now() - new Date(cachedAt).getTime()) / (1000 * 60 * 60 * 24)
+    : null;
+  const cacheIsStale = cacheAgeDays === null || cacheAgeDays >= CACHE_TTL_DAYS;
+
+  const fetchJobs = useCallback(async (forceRefresh = false) => {
     setLoading(true);
+    setShowRefreshWarning(false);
     try {
-      const { data, error } = await supabase.functions.invoke("fetch-pm-jobs");
+      const { data, error } = await supabase.functions.invoke("fetch-pm-jobs", {
+        body: { forceRefresh },
+      });
       if (error) throw error;
       if (data?.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
         setJobs(data.jobs);
         setIsLive(true);
-        toast.success(`${data.jobs.length} live PM jobs fetched`);
+        setCachedAt(data.cachedAt ?? null);
+        setNextRefreshDays(data.nextRefreshDays ?? null);
+        if (data.fromCache) {
+          toast.success(`${data.jobs.length} jobs loaded from cache`);
+        } else {
+          toast.success(`${data.jobs.length} fresh PM jobs fetched & saved`);
+        }
       } else {
         setJobs(mockJobs);
-        toast.error("No live jobs returned, showing cached data");
+        toast.error("No jobs returned — showing sample data");
       }
     } catch (err) {
       console.error("fetch-pm-jobs error:", err);
       setJobs(mockJobs);
-      toast.error("Could not fetch live jobs — showing cached data");
+      toast.error("Could not load jobs — showing sample data");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Auto-fetch on mount
+  // On mount — always load from cache (free)
   useEffect(() => {
-    fetchRealJobs();
-  }, [fetchRealJobs]);
+    fetchJobs(false);
+  }, [fetchJobs]);
+
+  const handleRefreshClick = () => {
+    if (!cacheIsStale) {
+      // Cache is fresh — warn user before burning credits
+      setShowRefreshWarning(true);
+    } else {
+      fetchJobs(true);
+    }
+  };
 
   const filtered = useMemo(() => {
     let result = [...jobs];
@@ -80,6 +107,14 @@ const Jobs: React.FC = () => {
   const newCount = jobs.filter((j) => j.timingTag === "new").length;
   const earlyCount = jobs.filter((j) => j.timingTag === "early").length;
 
+  const cacheLabel = cachedAt
+    ? cacheAgeDays !== null && cacheAgeDays < 1
+      ? "Updated today"
+      : cacheAgeDays !== null && cacheAgeDays < 2
+      ? "Updated yesterday"
+      : `Updated ${Math.floor(cacheAgeDays!)} days ago`
+    : null;
+
   return (
     <div className="flex flex-col h-full">
       <Header
@@ -108,12 +143,24 @@ const Jobs: React.FC = () => {
               </Button>
               <div className="flex-1" />
 
+              {/* Cache status indicator */}
+              {cacheLabel && (
+                <span className={cn(
+                  "inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full",
+                  cacheIsStale ? "bg-warning/10 text-warning" : "bg-success/10 text-score-high"
+                )}>
+                  <Clock className="w-3 h-3" />
+                  {cacheLabel}
+                  {!cacheIsStale && nextRefreshDays != null && ` · refresh in ${nextRefreshDays}d`}
+                </span>
+              )}
+
               {/* Live / cached indicator */}
               <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full",
                 isLive ? "bg-success/10 text-score-high" : "bg-muted text-muted-foreground"
               )}>
                 {isLive ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                {isLive ? "Live jobs" : "Cached"}
+                {isLive ? "Live" : "Sample"}
               </span>
 
               <span className="text-xs text-muted-foreground">{filtered.length} results</span>
@@ -134,13 +181,31 @@ const Jobs: React.FC = () => {
               </div>
               <Button
                 variant="ghost" size="icon" className="h-8 w-8"
-                onClick={fetchRealJobs}
+                onClick={handleRefreshClick}
                 disabled={loading}
-                title="Refresh live jobs"
+                title={cacheIsStale ? "Fetch fresh jobs (uses ~144 Firecrawl credits)" : `Cache is fresh — next free refresh in ${nextRefreshDays ?? CACHE_TTL_DAYS} days`}
               >
                 <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               </Button>
             </div>
+
+            {/* Credit warning banner */}
+            {showRefreshWarning && (
+              <div className="mx-4 mt-3 p-3 rounded-lg border border-warning/40 bg-warning/5 flex items-start gap-3">
+                <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">This will use ~144 Firecrawl credits</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Your cache is still fresh ({cacheLabel}). On the free plan you only get ~3 refreshes/month.
+                    Are you sure?
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowRefreshWarning(false)}>Cancel</Button>
+                  <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => fetchJobs(true)}>Refresh anyway</Button>
+                </div>
+              </div>
+            )}
 
             {/* Loading state */}
             {loading && jobs.length === 0 && (
