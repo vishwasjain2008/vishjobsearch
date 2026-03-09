@@ -79,8 +79,9 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
-  // Fallback: if company still unknown, use ATS URL slug
-  if ((company === "Unknown" || company === "") && atsCompanyMatch) {
+  // Override with URL slug if company resolved to an ATS platform name or is unknown
+  const atsPlatformNames = /^(greenhouse|lever|ashby|workday|icims|smartrecruiters|unknown)$/i;
+  if ((company === "Unknown" || company === "" || atsPlatformNames.test(company)) && atsCompanyMatch) {
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 

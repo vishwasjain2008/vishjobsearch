@@ -9,20 +9,12 @@ import {
   Star, ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX,
 } from "lucide-react";
 
-// Route to the correct job board based on source, using exact title + company
+// Use the direct apply link from the job listing (Greenhouse/Lever/Ashby/Workday direct URLs)
 const buildApplyUrl = (job: JobListing): string => {
+  if (job.applyLink && job.applyLink.startsWith("http")) return job.applyLink;
+  // Fallback only if no direct link
   const q = encodeURIComponent(`${job.title} ${job.company}`);
-  const title = encodeURIComponent(job.title);
-  const loc = encodeURIComponent(job.location.replace("Remote", "").trim() || "United States");
-  switch (job.source) {
-    case "Indeed":
-      return `https://www.indeed.com/jobs?q=${encodeURIComponent(`"${job.title}"`)}&l=${loc}&sc=0kf%3Acompany(${encodeURIComponent(job.company)})%3B&sort=date`;
-    case "Glassdoor":
-      return `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${q}&locT=C&suggestCount=0&suggestChosen=false`;
-    default:
-      // Google Jobs — most reliable cross-source fallback
-      return `https://www.google.com/search?q=${encodeURIComponent(`"${job.title}" ${job.company} job`)}&ibp=htl;jobs`;
-  }
+  return `https://www.google.com/search?q=${q}&ibp=htl;jobs`;
 };
 
 interface JobCardProps {
