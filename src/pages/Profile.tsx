@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { ResumeUpload } from "@/components/profile/ResumeUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CandidateProfile } from "@/types";
-import { User, Briefcase, GraduationCap, Award, MapPin, DollarSign, Plus, X, Edit3 } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, MapPin, Plus, X, Edit3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfile } from "@/hooks/useProfile";
 
