@@ -39,6 +39,15 @@ interface JobResult {
   seniority: string;
 }
 
+// Strip ATS platform suffixes from company/title strings
+function cleanATSName(name: string): string {
+  return name
+    .replace(/\s*[-–|]\s*(Greenhouse|Lever|Ashby|Workday|iCIMS|SmartRecruiters)\s*$/i, "")
+    .replace(/^(Greenhouse|Lever|Ashby|Workday|iCIMS|SmartRecruiters)\s*[-–|]\s*/i, "")
+    .replace(/^Job Application for\s+/i, "")
+    .trim();
+}
+
 // Derive structured fields from a search result
 function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResult | null {
   const { url, title: rawTitle, description } = result;
@@ -50,24 +59,28 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
 
   const atMatch = rawTitle.match(/^(.+?)\s+(?:at|@)\s+(.+?)(?:\s*[|–-].*)?$/i);
   const pipeMatch = rawTitle.match(/^(.+?)\s*[|–-]\s*(.+?)\s*(?:job|career|role)?$/i);
-  const jobsMatch = url.match(/(?:jobs|careers|job)\.([a-z0-9-]+)\./i);
+
+  // Extract company from ATS URL path: jobs.lever.co/company/... or job-boards.greenhouse.io/company/...
+  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i);
 
   if (atMatch) {
-    title = atMatch[1].trim();
-    company = atMatch[2].trim();
+    title = cleanATSName(atMatch[1].trim());
+    company = cleanATSName(atMatch[2].trim());
   } else if (pipeMatch) {
-    // Could be "Company | Role" or "Role | Company"
     const pmKeywords = /product\s*manager|PM|head of product|director of product/i;
     if (pmKeywords.test(pipeMatch[1])) {
-      title = pipeMatch[1].trim();
-      company = pipeMatch[2].trim();
+      title = cleanATSName(pipeMatch[1].trim());
+      company = cleanATSName(pipeMatch[2].trim());
     } else {
-      company = pipeMatch[1].trim();
-      title = pipeMatch[2].trim();
+      company = cleanATSName(pipeMatch[1].trim());
+      title = cleanATSName(pipeMatch[2].trim());
     }
-  } else if (jobsMatch) {
-    company = jobsMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  } else if (atsCompanyMatch) {
+    company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
+
+  // Clean title of ATS suffixes too
+  title = cleanATSName(title);
 
   // Skip if doesn't look like a PM role
   const pmRegex = /product\s*manager|PM\b|head of product|vp.*product|director.*product|principal.*product/i;
