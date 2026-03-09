@@ -283,20 +283,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
-    if (!FIRECRAWL_API_KEY) {
+    const TAVILY_API_KEY = Deno.env.get("TAVILY_API_KEY");
+    if (!TAVILY_API_KEY) {
       return new Response(
-        JSON.stringify({ success: false, error: "Firecrawl not configured" }),
+        JSON.stringify({ success: false, error: "Tavily not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Search queries — visa-sponsorship queries first for priority ordering
     const queries = [
-      // Visa-sponsorship queries first — results parsed first get lower idx → higher priority scores
-      "Product Manager \"visa sponsorship\" United States site:greenhouse.io OR site:lever.co",
-      "Senior Product Manager \"will sponsor\" OR \"H-1B sponsor\" United States site:ashbyhq.com OR site:greenhouse.io",
-      "Product Manager \"immigration support\" OR \"work authorization sponsor\" USA site:lever.co OR site:greenhouse.io",
+      // Visa-sponsorship queries first
+      "Product Manager visa sponsorship United States site:greenhouse.io OR site:lever.co",
+      "Senior Product Manager will sponsor H-1B United States site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager immigration support work authorization sponsor USA site:lever.co OR site:greenhouse.io",
       // General US-only PM queries
       "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
       "Product Manager hiring United States site:ashbyhq.com OR site:myworkdayjobs.com",
@@ -305,33 +305,37 @@ Deno.serve(async (req) => {
       "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
       "Product Manager fintech United States site:ashbyhq.com OR site:myworkdayjobs.com",
-      // Workday-specific queries to maximize coverage of company Workday portals
       "Senior Product Manager United States site:myworkdayjobs.com",
       "Product Manager United States 2025 site:myworkdayjobs.com",
     ];
 
-    const allResults: FirecrawlSearchResult[] = [];
+    const allResults: SearchResult[] = [];
 
-    // Run all queries in parallel
+    // Run all queries in parallel via Tavily
     const searchPromises = queries.map(async (query) => {
-      const res = await fetch("https://api.firecrawl.dev/v1/search", {
+      const res = await fetch("https://api.tavily.com/search", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          api_key: TAVILY_API_KEY,
           query,
-          limit: 15,
-          scrapeOptions: { formats: [] }, // metadata only — no scrape needed
+          max_results: 15,
+          search_depth: "basic",
+          include_answer: false,
+          include_raw_content: false,
         }),
       });
       if (!res.ok) {
-        console.error(`Search failed for: ${query}`, await res.text());
+        console.error(`Tavily search failed for: ${query}`, await res.text());
         return [];
       }
       const data = await res.json();
-      return (data.data as FirecrawlSearchResult[]) ?? [];
+      // Tavily returns { results: [{ url, title, content, score }] }
+      return ((data.results ?? []) as { url: string; title: string; content: string }[]).map((r) => ({
+        url: r.url,
+        title: r.title,
+        description: r.content,
+      })) as SearchResult[];
     });
 
     const results = await Promise.allSettled(searchPromises);
