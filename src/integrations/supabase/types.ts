@@ -14,6 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      cached_jobs: {
+        Row: {
+          apply_link: string | null
+          cached_at: string
+          company: string
+          competition_level: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          is_hybrid: boolean
+          is_remote: boolean
+          location: string
+          match_score: number | null
+          missing_skills: string[] | null
+          partial_match_skills: string[] | null
+          posted_date: string | null
+          priority_score: number | null
+          required_skills: string[] | null
+          salary_max: number | null
+          salary_min: number | null
+          seniority: string | null
+          source: string | null
+          strong_match_skills: string[] | null
+          timing_tag: string | null
+          title: string
+          visa_status: string | null
+        }
+        Insert: {
+          apply_link?: string | null
+          cached_at?: string
+          company: string
+          competition_level?: string | null
+          description?: string | null
+          id: string
+          industry?: string | null
+          is_hybrid?: boolean
+          is_remote?: boolean
+          location: string
+          match_score?: number | null
+          missing_skills?: string[] | null
+          partial_match_skills?: string[] | null
+          posted_date?: string | null
+          priority_score?: number | null
+          required_skills?: string[] | null
+          salary_max?: number | null
+          salary_min?: number | null
+          seniority?: string | null
+          source?: string | null
+          strong_match_skills?: string[] | null
+          timing_tag?: string | null
+          title: string
+          visa_status?: string | null
+        }
+        Update: {
+          apply_link?: string | null
+          cached_at?: string
+          company?: string
+          competition_level?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          is_hybrid?: boolean
+          is_remote?: boolean
+          location?: string
+          match_score?: number | null
+          missing_skills?: string[] | null
+          partial_match_skills?: string[] | null
+          posted_date?: string | null
+          priority_score?: number | null
+          required_skills?: string[] | null
+          salary_max?: number | null
+          salary_min?: number | null
+          seniority?: string | null
+          source?: string | null
+          strong_match_skills?: string[] | null
+          timing_tag?: string | null
+          title?: string
+          visa_status?: string | null
+        }
+        Relationships: []
+      }
+      job_cache_meta: {
+        Row: {
+          id: number
+          last_fetched_at: string | null
+          total_jobs: number | null
+        }
+        Insert: {
+          id?: number
+          last_fetched_at?: string | null
+          total_jobs?: number | null
+        }
+        Update: {
+          id?: number
+          last_fetched_at?: string | null
+          total_jobs?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           certifications: Json | null
