@@ -208,10 +208,10 @@ const Jobs: React.FC = () => {
               <div className="mx-4 mt-3 p-3 rounded-lg border border-warning/40 bg-warning/5 flex items-start gap-3">
                 <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">This will use ~144 Firecrawl credits</p>
+                  <p className="text-sm font-medium text-foreground">Cache is still fresh</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Your cache is still fresh ({cacheLabel}). On the free plan you only get ~3 refreshes/month.
-                    Are you sure?
+                    Your cache is fresh ({cacheLabel}). Refreshing will use Tavily API credits unnecessarily.
+                    Are you sure you want to force a refresh?
                   </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
