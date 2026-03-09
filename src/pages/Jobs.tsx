@@ -30,17 +30,16 @@ const Jobs: React.FC = () => {
       const { data, error } = await supabase.functions.invoke("fetch-pm-jobs");
       if (error) throw error;
       if (data?.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
-        // Merge real jobs at top with mock jobs as padding
-        const realIds = new Set(data.jobs.map((j: JobListing) => j.id));
-        const padding = mockJobs.filter((j) => !realIds.has(j.id));
-        setJobs([...data.jobs, ...padding]);
+        setJobs(data.jobs);
         setIsLive(true);
         toast.success(`${data.jobs.length} live PM jobs fetched`);
       } else {
+        setJobs(mockJobs);
         toast.error("No live jobs returned, showing cached data");
       }
     } catch (err) {
       console.error("fetch-pm-jobs error:", err);
+      setJobs(mockJobs);
       toast.error("Could not fetch live jobs — showing cached data");
     } finally {
       setLoading(false);
@@ -134,12 +133,12 @@ const Jobs: React.FC = () => {
                 ))}
               </div>
               <Button
-                variant="ghost" size="icon" className={cn("h-8 w-8", loading && "animate-spin")}
+                variant="ghost" size="icon" className="h-8 w-8"
                 onClick={fetchRealJobs}
                 disabled={loading}
                 title="Refresh live jobs"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               </Button>
             </div>
 
