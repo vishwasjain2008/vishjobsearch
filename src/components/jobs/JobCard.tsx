@@ -1,11 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import type { JobListing } from "@/types";
-
-// Build a LinkedIn job search URL so the link goes to the real filtered listing
-const buildApplyUrl = (job: JobListing) =>
-  `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&f_C=&origin=JOBS_HOME_SEARCH_BUTTON`;
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { JobListing } from "@/types";
@@ -13,6 +8,10 @@ import {
   MapPin, Clock, DollarSign, Wifi, Building2, TrendingUp,
   Star, ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX,
 } from "lucide-react";
+
+// Build a LinkedIn job search URL so the link goes to the real filtered listing
+const buildApplyUrl = (job: JobListing) =>
+  `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&f_C=&origin=JOBS_HOME_SEARCH_BUTTON`;
 
 interface JobCardProps {
   job: JobListing;
