@@ -15,9 +15,6 @@ const buildApplyUrl = (job: JobListing): string => {
   const title = encodeURIComponent(job.title);
   const loc = encodeURIComponent(job.location.replace("Remote", "").trim() || "United States");
   switch (job.source) {
-    case "LinkedIn":
-      // keywords = "title company", location, sorted by relevance, posted last 30 days
-      return `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(`"${job.title}" ${job.company}`)}&location=${loc}&f_TPR=r2592000&sortBy=R`;
     case "Indeed":
       return `https://www.indeed.com/jobs?q=${encodeURIComponent(`"${job.title}"`)}&l=${loc}&sc=0kf%3Acompany(${encodeURIComponent(job.company)})%3B&sort=date`;
     case "Glassdoor":
