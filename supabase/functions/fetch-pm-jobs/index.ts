@@ -169,6 +169,7 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     [/greenhouse\.io/i, "Greenhouse"],
     [/lever\.co/i, "Lever"],
     [/ashbyhq\.com/i, "Ashby"],
+    [/myworkdayjobs\.com/i, "Workday"],
     [/workday\.com/i, "Workday"],
     [/icims\.com/i, "iCIMS"],
     [/smartrecruiters\.com/i, "SmartRecruiters"],
