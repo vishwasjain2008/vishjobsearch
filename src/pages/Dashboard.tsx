@@ -5,7 +5,8 @@ import { JobCard } from "@/components/jobs/JobCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { mockJobs, mockStats, mockProfile, mockApplications } from "@/data/mockData";
+import { mockJobs, mockStats, mockApplications } from "@/data/mockData";
+import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import type { JobListing } from "@/types";
 import {
@@ -15,6 +16,12 @@ import {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { profile } = useProfile();
+
+  const firstName = profile.name?.split(" ")[0] || "there";
+  const initials = profile.name
+    ? profile.name.split(" ").filter(Boolean).slice(0, 2).map((n) => n[0].toUpperCase()).join("")
+    : "?";
 
   const topJobs = [...mockJobs].sort((a, b) => b.priorityScore - a.priorityScore).slice(0, 3);
   const earlyJobs = mockJobs.filter((j) => j.timingTag === "new" || j.timingTag === "early");
@@ -30,7 +37,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <Header title="Dashboard" subtitle={`Welcome back, ${mockProfile.name.split(" ")[0]}! Here's your job search overview.`} />
+      <Header title="Dashboard" subtitle={`Welcome back, ${firstName}! Here's your job search overview.`} />
       <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
         {/* Stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -45,7 +52,7 @@ const Dashboard: React.FC = () => {
           <div className="xl:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-foreground">🎯 Top Priority Jobs</h2>
+                <h2 className="text-base font-bold text-foreground">🎯 Top Priority PM Jobs</h2>
                 <p className="text-xs text-muted-foreground">Ranked by Apply Priority Score</p>
               </div>
               <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => navigate("/jobs")}>
@@ -69,31 +76,33 @@ const Dashboard: React.FC = () => {
               <CardContent className="px-4 pb-4 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
-                    AJ
+                    {initials}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{mockProfile.name}</p>
-                    <p className="text-xs text-muted-foreground">{mockProfile.currentTitle}</p>
+                    <p className="text-sm font-semibold text-foreground">{profile.name || "—"}</p>
+                    <p className="text-xs text-muted-foreground">{profile.currentTitle || "Product Manager"}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded-lg bg-muted p-2.5 text-center">
-                    <p className="text-lg font-black text-foreground">{mockProfile.yearsOfExperience}</p>
+                    <p className="text-lg font-black text-foreground">{profile.yearsOfExperience || "—"}</p>
                     <p className="text-xs text-muted-foreground">Years Exp.</p>
                   </div>
                   <div className="rounded-lg bg-muted p-2.5 text-center">
-                    <p className="text-lg font-black text-foreground">{mockProfile.skills.length}</p>
+                    <p className="text-lg font-black text-foreground">{profile.skills.length || "—"}</p>
                     <p className="text-xs text-muted-foreground">Skills</p>
                   </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1.5">Top Skills</p>
-                  <div className="flex flex-wrap gap-1">
-                    {mockProfile.skills.slice(0, 6).map((s) => (
-                      <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
-                    ))}
+                {profile.skills.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Top Skills</p>
+                    <div className="flex flex-wrap gap-1">
+                      {profile.skills.slice(0, 6).map((s) => (
+                        <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
                 <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => navigate("/profile")}>
                   Edit Profile
                 </Button>

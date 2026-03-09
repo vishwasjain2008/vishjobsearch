@@ -2,8 +2,8 @@ import React from "react";
 import { Bell, Search, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useProfile } from "@/hooks/useProfile";
 
 interface HeaderProps {
   title: string;
@@ -11,6 +11,17 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
+  const { profile } = useProfile();
+
+  const initials = profile.name
+    ? profile.name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((n) => n[0].toUpperCase())
+        .join("")
+    : "?";
+
   return (
     <header className="h-16 border-b border-border bg-card flex items-center px-6 gap-4 shrink-0">
       <div className="flex-1">
@@ -35,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
           <span className="text-xs font-medium">AI Actions</span>
         </Button>
         <Avatar className="w-8 h-8">
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">AJ</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">{initials}</AvatarFallback>
         </Avatar>
       </div>
     </header>
