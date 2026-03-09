@@ -62,7 +62,18 @@ const Profile: React.FC = () => {
     <div className="flex flex-col h-full">
       <Header title="My Profile" subtitle="Manage your candidate profile and preferences" />
       <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
-        <Tabs defaultValue="profile">
+
+        {/* Resume parsed banner */}
+        {parsedBanner && (
+          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-xl border border-success/30 bg-success/8 text-sm">
+            <Sparkles className="w-4 h-4 text-visa-friendly shrink-0" />
+            <span className="text-foreground font-medium">Profile auto-filled from your resume.</span>
+            <span className="text-muted-foreground">Review and edit any fields below.</span>
+            <button onClick={() => setParsedBanner(false)} className="ml-auto text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="profile" className="gap-2"><User className="w-3.5 h-3.5" />Profile</TabsTrigger>
             <TabsTrigger value="experience" className="gap-2"><Briefcase className="w-3.5 h-3.5" />Experience</TabsTrigger>
