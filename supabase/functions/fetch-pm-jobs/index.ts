@@ -189,7 +189,7 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     matchScore,
     priorityScore,
     competitionLevel: matchScore >= 85 ? "low" : matchScore >= 75 ? "medium" : "high",
-    visaStatus: "unknown",
+    visaStatus,
     timingTag,
     strongMatchSkills,
     partialMatchSkills: [],
