@@ -197,7 +197,7 @@ const Jobs: React.FC = () => {
                 variant="ghost" size="icon" className="h-8 w-8"
                 onClick={handleRefreshClick}
                 disabled={loading}
-                title={cacheIsStale ? "Fetch fresh jobs (uses ~144 Firecrawl credits)" : `Cache is fresh — next free refresh in ${nextRefreshDays ?? CACHE_TTL_DAYS} days`}
+                title={cacheIsStale ? "Fetch fresh jobs via Tavily" : `Cache is fresh — next refresh in ${nextRefreshDays ?? CACHE_TTL_DAYS} days`}
               >
                 <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               </Button>
