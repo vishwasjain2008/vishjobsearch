@@ -38,11 +38,13 @@ Parse the resume and extract all information into this exact JSON structure:
   "phone": "phone number",
   "location": "city, state or country",
   "currentTitle": "most recent job title",
-  "summary": "professional summary (2-4 sentences describing the person's background)",
-  "yearsOfExperience": <number>,
-  "skills": ["array of skills listed or demonstrated"],
-  "tools": ["array of tools and software used"],
-  "industries": ["array of industries worked in"],
+  "summary": "professional summary (2-4 sentences describing the person's background and key strengths)",
+  "yearsOfExperience": <number — calculate from earliest role to present>,
+  "skills": ["array of SOFT and PRODUCT skills: e.g. Product Strategy, Roadmap Planning, Stakeholder Management, A/B Testing, User Research, Go-to-Market, Agile, Scrum, OKRs, Data Analysis, Cross-functional Leadership, etc."],
+  "tools": ["array of TOOLS and TECHNOLOGIES only: e.g. Jira, Confluence, Figma, Mixpanel, Amplitude, SQL, Python, Tableau, Looker, Salesforce, Notion, Miro, etc."],
+  "industries": ["array of industries the person has worked in, e.g. FinTech, HealthTech, SaaS, E-commerce, etc."],
+  "desiredTitles": ["infer 2-4 job titles this person would be targeting based on their background, e.g. Senior Product Manager, Principal Product Manager, Director of Product"],
+  "salaryMin": <infer a reasonable minimum salary expectation in USD based on seniority and location — integer, no dollar sign>,
   "experience": [
     {
       "title": "exact job title",
@@ -50,7 +52,7 @@ Parse the resume and extract all information into this exact JSON structure:
       "startDate": "Mon YYYY",
       "endDate": "Mon YYYY or Present",
       "description": ["bullet point 1", "bullet point 2", "bullet point 3"],
-      "skills": ["skills used in this role"]
+      "skills": ["skills demonstrated in this specific role"]
     }
   ],
   "education": [
@@ -70,7 +72,12 @@ Parse the resume and extract all information into this exact JSON structure:
   ]
 }
 
-IMPORTANT: Extract the EXACT information from the resume. Do not invent or assume any details. Return ONLY the JSON object, nothing else.`;
+IMPORTANT: 
+- Extract the EXACT information from the resume. Do not invent facts.
+- Separate skills (soft/product) from tools (software/tech) carefully.
+- desiredTitles should be inferred intelligently from the career trajectory.
+- salaryMin should be a realistic integer (e.g. 140000 for a senior PM in SF).
+- Return ONLY the JSON object, nothing else.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
