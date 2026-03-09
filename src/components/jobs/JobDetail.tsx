@@ -12,6 +12,10 @@ import {
   CheckCircle2, AlertCircle, XCircle, Sparkles, Star,
 } from "lucide-react";
 
+// Build a LinkedIn job search URL so the link goes to the real filtered listing
+const buildApplyUrl = (job: JobListing) =>
+  `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&f_C=&origin=JOBS_HOME_SEARCH_BUTTON`;
+
 interface JobDetailProps {
   job: JobListing | null;
   onClose: () => void;
@@ -134,7 +138,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) =
               <p className="text-xs text-muted-foreground">{visa.desc}</p>
             </div>
             <div className="flex gap-2">
-              <Button className="flex-1 gap-2" onClick={() => window.open(job.applyLink)}>
+              <Button className="flex-1 gap-2" onClick={() => window.open(buildApplyUrl(job), "_blank", "noopener,noreferrer")}>
                 <ExternalLink className="w-4 h-4" />Apply Now
               </Button>
               <Button variant="outline" className="flex-1 gap-2">

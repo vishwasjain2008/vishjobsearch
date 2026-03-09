@@ -9,6 +9,10 @@ import {
   Star, ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX,
 } from "lucide-react";
 
+// Build a LinkedIn job search URL so the link goes to the real filtered listing
+const buildApplyUrl = (job: JobListing) =>
+  `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&f_C=&origin=JOBS_HOME_SEARCH_BUTTON`;
+
 interface JobCardProps {
   job: JobListing;
   onSelect: (job: JobListing) => void;
@@ -142,7 +146,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
             </span>
           </div>
           <div className="flex gap-1.5">
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(e) => { e.stopPropagation(); window.open(job.applyLink); }}>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(e) => { e.stopPropagation(); window.open(buildApplyUrl(job), "_blank", "noopener,noreferrer"); }}>
               <ExternalLink className="w-3 h-3 mr-1" />
               Apply
             </Button>
