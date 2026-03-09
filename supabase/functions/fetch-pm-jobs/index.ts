@@ -213,12 +213,15 @@ Deno.serve(async (req) => {
       "Senior PM role apply site:jobs.lever.co OR site:boards.greenhouse.io",
       "Principal Product Manager job posting site:icims.com OR site:smartrecruiters.com",
       "Director of Product Management hiring 2025 site:greenhouse.io OR site:ashbyhq.com",
+      "Technical Product Manager job site:greenhouse.io OR site:lever.co",
+      "Product Manager fintech banking site:ashbyhq.com OR site:greenhouse.io",
+      "Group Product Manager OR Staff Product Manager site:lever.co OR site:greenhouse.io",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
 
-    // Run searches in parallel, up to 3 queries to stay within credits
-    const searchPromises = queries.slice(0, 3).map(async (query) => {
+    // Run all queries in parallel
+    const searchPromises = queries.map(async (query) => {
       const res = await fetch("https://api.firecrawl.dev/v1/search", {
         method: "POST",
         headers: {
@@ -227,7 +230,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           query,
-          limit: 10,
+          limit: 15,
           scrapeOptions: { formats: [] }, // metadata only — no scrape needed
         }),
       });
