@@ -61,10 +61,18 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   const pipeMatch = rawTitle.match(/^(.+?)\s*[|–-]\s*(.+?)\s*(?:job|career|role)?$/i);
 
   // Extract company from ATS URL path: jobs.lever.co/company/... or job-boards.greenhouse.io/company/...
-  const atsCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i)
-    ?? url.match(/^https?:\/\/([a-z0-9_-]+)\.wd\d+\.myworkdayjobs\.com\//i);
+  const atsPathCompanyMatch = url.match(/(?:jobs\.lever\.co|job-boards(?:\.eu)?\.greenhouse\.io|jobs\.ashbyhq\.com|job-boards\.eu\.greenhouse\.io)\/([a-z0-9_-]+)\//i);
+  // For Workday, company is the subdomain: company.wd1.myworkdayjobs.com
+  const workdaySubdomainMatch = url.match(/^https?:\/\/([a-z0-9_-]+)\.wd\d+\.myworkdayjobs\.com\//i);
+  const atsCompanyMatch = atsPathCompanyMatch ?? workdaySubdomainMatch;
 
-  if (atMatch) {
+  // For Workday URLs, always use subdomain as company — page titles say "Workday" not the actual company
+  if (workdaySubdomainMatch) {
+    company = workdaySubdomainMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    // Still try to get clean title from title patterns
+    if (atMatch) title = cleanATSName(atMatch[1].trim());
+    else if (pipeMatch) title = cleanATSName(pipeMatch[1].trim());
+  } else if (atMatch) {
     title = cleanATSName(atMatch[1].trim());
     company = cleanATSName(atMatch[2].trim());
   } else if (pipeMatch) {
@@ -80,9 +88,9 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
-  // Override with URL slug if company resolved to an ATS platform name or is unknown
+  // Override with URL slug if company resolved to an ATS platform name or is unknown (non-Workday URLs)
   const atsPlatformNames = /^(greenhouse|lever|ashby|workday|icims|smartrecruiters|unknown)$/i;
-  if ((company === "Unknown" || company === "" || atsPlatformNames.test(company)) && atsCompanyMatch) {
+  if (!workdaySubdomainMatch && (company === "Unknown" || company === "" || atsPlatformNames.test(company)) && atsCompanyMatch) {
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
