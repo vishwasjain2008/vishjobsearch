@@ -12,9 +12,21 @@ import {
   CheckCircle2, AlertCircle, XCircle, Sparkles, Star,
 } from "lucide-react";
 
-// Build a LinkedIn job search URL so the link goes to the real filtered listing
-const buildApplyUrl = (job: JobListing) =>
-  `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&f_C=&origin=JOBS_HOME_SEARCH_BUTTON`;
+// Route to the correct job board based on source, using exact title + company
+const buildApplyUrl = (job: JobListing): string => {
+  const q = encodeURIComponent(`${job.title} ${job.company}`);
+  const loc = encodeURIComponent(job.location.replace("Remote", "").trim() || "United States");
+  switch (job.source) {
+    case "LinkedIn":
+      return `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(`"${job.title}" ${job.company}`)}&location=${loc}&f_TPR=r2592000&sortBy=R`;
+    case "Indeed":
+      return `https://www.indeed.com/jobs?q=${encodeURIComponent(`"${job.title}"`)}&l=${loc}&sc=0kf%3Acompany(${encodeURIComponent(job.company)})%3B&sort=date`;
+    case "Glassdoor":
+      return `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${q}&locT=C&suggestCount=0&suggestChosen=false`;
+    default:
+      return `https://www.google.com/search?q=${encodeURIComponent(`"${job.title}" ${job.company} job`)}&ibp=htl;jobs`;
+  }
+};
 
 interface JobDetailProps {
   job: JobListing | null;
