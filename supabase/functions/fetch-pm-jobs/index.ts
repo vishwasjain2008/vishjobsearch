@@ -231,12 +231,59 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   };
 }
 
+const CACHE_TTL_DAYS = 10; // Only hit Firecrawl once every 10 days (~3x/month = within free tier)
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Check if cache is still fresh
+    const { data: meta } = await supabase
+      .from("job_cache_meta")
+      .select("last_fetched_at, total_jobs")
+      .eq("id", 1)
+      .single();
+
+    const forceRefresh = (await req.json().catch(() => ({}))).forceRefresh === true;
+    const lastFetched = meta?.last_fetched_at ? new Date(meta.last_fetched_at) : null;
+    const ageMs = lastFetched ? Date.now() - lastFetched.getTime() : Infinity;
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    const cacheIsStale = ageDays >= CACHE_TTL_DAYS;
+
+    // Serve from cache if fresh and not forcing a refresh
+    if (!cacheIsStale && !forceRefresh && meta?.total_jobs > 0) {
+      const { data: cachedJobs } = await supabase
+        .from("cached_jobs")
+        .select("*")
+        .order("priority_score", { ascending: false });
+
+      if (cachedJobs && cachedJobs.length > 0) {
+        const jobs = cachedJobs.map((j) => ({
+          id: j.id, title: j.title, company: j.company, location: j.location,
+          isRemote: j.is_remote, isHybrid: j.is_hybrid, description: j.description,
+          requiredSkills: j.required_skills, salaryMin: j.salary_min, salaryMax: j.salary_max,
+          postedDate: j.posted_date, applyLink: j.apply_link, source: j.source,
+          matchScore: j.match_score, priorityScore: j.priority_score,
+          competitionLevel: j.competition_level, visaStatus: j.visa_status,
+          timingTag: j.timing_tag, strongMatchSkills: j.strong_match_skills,
+          partialMatchSkills: j.partial_match_skills, missingSkills: j.missing_skills,
+          industry: j.industry, seniority: j.seniority,
+        }));
+        console.log(`Served ${jobs.length} jobs from cache (age: ${ageDays.toFixed(1)} days)`);
+        return new Response(JSON.stringify({
+          success: true, jobs, total: jobs.length,
+          fromCache: true, cachedAt: meta.last_fetched_at,
+          nextRefreshDays: Math.ceil(CACHE_TTL_DAYS - ageDays),
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
     if (!FIRECRAWL_API_KEY) {
       return new Response(
