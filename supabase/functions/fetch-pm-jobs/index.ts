@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
         return rank[a.visaStatus] - rank[b.visaStatus];
       });
 
-    console.log(`Fetched ${unique.length} results → parsed ${jobs.length} PM jobs`);
+    console.log(`Tavily: fetched ${unique.length} results → parsed ${jobs.length} PM jobs`);
 
     // Save to cache — clear old jobs first, then insert new batch
     const now = new Date().toISOString();
