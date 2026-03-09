@@ -77,7 +77,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? anonKey}`,
         },
-        body: JSON.stringify({ resumeText }),
+        body: JSON.stringify({ fileBase64, mimeType }),
       });
 
       if (!res.ok) {
