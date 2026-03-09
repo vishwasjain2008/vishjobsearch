@@ -97,9 +97,13 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   const isRemote = /\bremote\b/.test(text);
   const isHybrid = /\bhybrid\b/.test(text);
 
-  // Extract location
+  // Reject non-US jobs — detect explicit foreign country/city mentions in description or title
+  const nonUSRegex = /\b(Canada|Toronto|Vancouver|Montreal|Ottawa|Calgary|Edmonton|UK|United Kingdom|London|Manchester|Edinburgh|Australia|Sydney|Melbourne|Brisbane|India|Bangalore|Mumbai|Delhi|Hyderabad|Israel|Tel Aviv|Germany|Berlin|Munich|France|Paris|Netherlands|Amsterdam|Singapore|Japan|Tokyo|Brazil|São Paulo|Argentina|Buenos Aires|Mexico|New Zealand|Ireland|Dublin|Poland|Warsaw|Spain|Madrid|Barcelona|Sweden|Stockholm|Denmark|Copenhagen|Norway|Oslo|Finland|Helsinki|Switzerland|Zurich|Geneva)\b/i;
+  if (nonUSRegex.test(`${description} ${rawTitle}`)) return null;
+
+  // Extract US location
   const locationMatch = description.match(
-    /\b(Remote|New York|San Francisco|Seattle|Austin|Chicago|Boston|Los Angeles|London|Toronto|Vancouver|Atlanta|Denver|Miami|Palo Alto|Sunnyvale|Mountain View|Menlo Park)[,\s]*(NY|CA|WA|TX|IL|MA|UK|ON|BC|GA|CO|FL)?\b/i
+    /\b(Remote|New York|San Francisco|Seattle|Austin|Chicago|Boston|Los Angeles|Atlanta|Denver|Miami|Palo Alto|Sunnyvale|Mountain View|Menlo Park|San Jose|San Diego|Portland|Phoenix|Dallas|Houston|Minneapolis|Detroit|Nashville|Raleigh|Salt Lake City|Pittsburgh)[,\s]*(NY|CA|WA|TX|IL|MA|GA|CO|FL|OR|AZ|MN|MI|TN|NC|UT|PA)?\b/i
   );
   const location = isRemote ? "Remote" : locationMatch ? locationMatch[0].trim() : "United States";
 
@@ -216,17 +220,17 @@ Deno.serve(async (req) => {
     // Search queries — visa-sponsorship queries first for priority ordering
     const queries = [
       // Visa-sponsorship queries first — results parsed first get lower idx → higher priority scores
-      "Product Manager \"visa sponsorship\" OR \"sponsor visa\" OR \"H1B\" site:greenhouse.io OR site:lever.co",
-      "Senior Product Manager \"will sponsor\" OR \"visa sponsored\" OR \"open to sponsorship\" site:ashbyhq.com OR site:greenhouse.io",
-      "Product Manager \"H-1B\" OR \"immigration support\" OR \"work authorization\" sponsor site:lever.co OR site:greenhouse.io",
-      // General PM queries
-      "Senior Product Manager job opening 2025 site:greenhouse.io OR site:lever.co",
-      "Product Manager hiring now site:ashbyhq.com OR site:workday.com",
-      "Senior PM role apply site:jobs.lever.co OR site:boards.greenhouse.io",
-      "Principal Product Manager job posting site:icims.com OR site:smartrecruiters.com",
-      "Director of Product Management hiring 2025 site:greenhouse.io OR site:ashbyhq.com",
-      "Technical Product Manager job site:greenhouse.io OR site:lever.co",
-      "Product Manager fintech banking site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager \"visa sponsorship\" United States site:greenhouse.io OR site:lever.co",
+      "Senior Product Manager \"will sponsor\" OR \"H-1B sponsor\" United States site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager \"immigration support\" OR \"work authorization sponsor\" USA site:lever.co OR site:greenhouse.io",
+      // General US-only PM queries
+      "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
+      "Product Manager hiring United States site:ashbyhq.com OR site:workday.com",
+      "Senior PM role United States apply site:jobs.lever.co OR site:boards.greenhouse.io",
+      "Principal Product Manager United States site:icims.com OR site:smartrecruiters.com",
+      "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
+      "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
+      "Product Manager fintech United States site:ashbyhq.com OR site:greenhouse.io",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
