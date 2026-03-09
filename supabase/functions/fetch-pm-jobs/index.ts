@@ -347,22 +347,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search queries — H1B/visa-sponsorship queries first, then targeted big-sponsor queries, then broad
+    // Search queries — H1B/visa-sponsorship queries first, then general US PM queries.
+    // No company names in queries to keep results unbiased across all H1B sponsors.
     const queries = [
-      // ── H1B / Visa sponsorship targeted ──────────────────────────────────
+      // ── H1B / Visa sponsorship targeted (unbiased — no specific company names) ──
       "Product Manager H1B visa sponsorship sponsor United States site:greenhouse.io OR site:lever.co",
       "Senior Product Manager will sponsor H-1B visa 2025 United States site:ashbyhq.com OR site:greenhouse.io",
       "Product Manager immigration sponsorship work authorization USA site:lever.co OR site:greenhouse.io",
-      // ── Top known H1B sponsors (USCIS data) ──────────────────────────────
-      "Product Manager Google Microsoft Amazon Salesforce Stripe 2025 site:greenhouse.io OR site:lever.co",
-      "Senior Product Manager Uber Lyft DoorDash Airbnb Shopify United States site:greenhouse.io OR site:lever.co",
-      "Product Manager Snowflake Databricks Cloudflare Datadog United States site:ashbyhq.com OR site:greenhouse.io",
-      // ── General US PM queries ─────────────────────────────────────────────
+      "Product Manager visa sponsorship offered United States site:myworkdayjobs.com OR site:icims.com",
+      // ── General US PM queries (all companies get equal chance) ──────────────────
       "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
       "Product Manager hiring United States site:ashbyhq.com OR site:myworkdayjobs.com",
       "Principal Product Manager United States site:icims.com OR site:smartrecruiters.com",
       "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
+      "Product Manager fintech United States site:ashbyhq.com OR site:myworkdayjobs.com",
+      "Senior Product Manager United States site:myworkdayjobs.com",
       "Product Manager United States 2025 site:myworkdayjobs.com",
     ];
 
