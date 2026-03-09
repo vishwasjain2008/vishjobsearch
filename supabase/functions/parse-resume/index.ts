@@ -5,6 +5,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function extractJson(raw: string): unknown {
+  let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+  const start = cleaned.search(/[{\[]/);
+  const last = Math.max(cleaned.lastIndexOf("}"), cleaned.lastIndexOf("]"));
+  if (start === -1 || last === -1) throw new Error("No JSON found in AI response");
+  cleaned = cleaned.substring(start, last + 1);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]").replace(/[\x00-\x1F\x7F]/g, "");
+    return JSON.parse(cleaned);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -12,36 +26,36 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { resumeText } = await req.json();
-    if (!resumeText) throw new Error("resumeText is required");
+    const { fileBase64, mimeType } = await req.json();
+    if (!fileBase64) throw new Error("fileBase64 is required");
 
-    const systemPrompt = `You are an expert resume parser. Extract structured information from resume text and return it as valid JSON only (no markdown, no code blocks, just raw JSON).`;
+    const prompt = `You are an expert resume parser. Extract ALL information from this resume document and return it as valid JSON only (no markdown, no code blocks, just raw JSON).
 
-    const userPrompt = `Parse this resume and extract all information into this exact JSON structure:
+Parse the resume and extract all information into this exact JSON structure:
 {
   "name": "full name",
   "email": "email address",
   "phone": "phone number",
   "location": "city, state or country",
   "currentTitle": "most recent job title",
-  "summary": "professional summary or objective (2-4 sentences)",
-  "yearsOfExperience": number,
-  "skills": ["array", "of", "technical", "skills"],
-  "tools": ["array", "of", "tools", "and", "software"],
-  "industries": ["array", "of", "industries", "worked", "in"],
+  "summary": "professional summary (2-4 sentences describing the person's background)",
+  "yearsOfExperience": <number>,
+  "skills": ["array of skills listed or demonstrated"],
+  "tools": ["array of tools and software used"],
+  "industries": ["array of industries worked in"],
   "experience": [
     {
-      "title": "job title",
-      "company": "company name",
+      "title": "exact job title",
+      "company": "exact company name",
       "startDate": "Mon YYYY",
       "endDate": "Mon YYYY or Present",
-      "description": ["bullet point 1", "bullet point 2"],
-      "skills": ["skills", "used"]
+      "description": ["bullet point 1", "bullet point 2", "bullet point 3"],
+      "skills": ["skills used in this role"]
     }
   ],
   "education": [
     {
-      "degree": "B.S. or M.S. etc",
+      "degree": "e.g. B.S. or M.B.A.",
       "field": "field of study",
       "school": "school name",
       "year": "graduation year"
@@ -56,10 +70,7 @@ serve(async (req) => {
   ]
 }
 
-Resume text:
-${resumeText}
-
-Return ONLY the JSON object, nothing else.`;
+IMPORTANT: Extract the EXACT information from the resume. Do not invent or assume any details. Return ONLY the JSON object, nothing else.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -68,10 +79,23 @@ Return ONLY the JSON object, nothing else.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${mimeType ?? "application/pdf"};base64,${fileBase64}`,
+                },
+              },
+            ],
+          },
         ],
         stream: false,
       }),
@@ -94,10 +118,9 @@ Return ONLY the JSON object, nothing else.`;
 
     const aiData = await response.json();
     const rawContent = aiData.choices?.[0]?.message?.content ?? "";
+    console.log("AI raw response length:", rawContent.length);
 
-    // Clean up any accidental markdown code fences
-    const cleaned = rawContent.replace(/```json\n?/gi, "").replace(/```\n?/gi, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = extractJson(rawContent);
 
     return new Response(JSON.stringify({ profile: parsed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

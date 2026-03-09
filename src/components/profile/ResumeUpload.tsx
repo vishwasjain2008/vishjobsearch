@@ -15,12 +15,16 @@ interface ResumeUploadProps {
   userId?: string | null;
 }
 
-async function extractTextFromFile(file: File): Promise<string> {
+async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => resolve((e.target?.result as string) ?? "");
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      // Strip the data URL prefix, return only the base64 content
+      resolve(result.split(",")[1] ?? "");
+    };
     reader.onerror = reject;
-    reader.readAsText(file);
+    reader.readAsDataURL(file);
   });
 }
 
@@ -59,10 +63,10 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
         if (uploadErr) throw new Error(uploadErr.message);
       }
 
-      // Extract text & call AI
+      // Extract as base64 & call AI vision parser
       setStage("parsing");
-      const resumeText = await extractTextFromFile(file);
-
+      const fileBase64 = await fileToBase64(file);
+      const mimeType = file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       const { data: { session } } = await supabase.auth.getSession();
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -73,7 +77,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? anonKey}`,
         },
-        body: JSON.stringify({ resumeText }),
+        body: JSON.stringify({ fileBase64, mimeType }),
       });
 
       if (!res.ok) {
