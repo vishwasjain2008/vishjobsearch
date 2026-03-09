@@ -97,9 +97,13 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   const isRemote = /\bremote\b/.test(text);
   const isHybrid = /\bhybrid\b/.test(text);
 
-  // Extract location
+  // Reject non-US jobs — detect explicit foreign country/city mentions in description or title
+  const nonUSRegex = /\b(Canada|Toronto|Vancouver|Montreal|Ottawa|Calgary|Edmonton|UK|United Kingdom|London|Manchester|Edinburgh|Australia|Sydney|Melbourne|Brisbane|India|Bangalore|Mumbai|Delhi|Hyderabad|Israel|Tel Aviv|Germany|Berlin|Munich|France|Paris|Netherlands|Amsterdam|Singapore|Japan|Tokyo|Brazil|São Paulo|Argentina|Buenos Aires|Mexico|New Zealand|Ireland|Dublin|Poland|Warsaw|Spain|Madrid|Barcelona|Sweden|Stockholm|Denmark|Copenhagen|Norway|Oslo|Finland|Helsinki|Switzerland|Zurich|Geneva)\b/i;
+  if (nonUSRegex.test(`${description} ${rawTitle}`)) return null;
+
+  // Extract US location
   const locationMatch = description.match(
-    /\b(Remote|New York|San Francisco|Seattle|Austin|Chicago|Boston|Los Angeles|London|Toronto|Vancouver|Atlanta|Denver|Miami|Palo Alto|Sunnyvale|Mountain View|Menlo Park)[,\s]*(NY|CA|WA|TX|IL|MA|UK|ON|BC|GA|CO|FL)?\b/i
+    /\b(Remote|New York|San Francisco|Seattle|Austin|Chicago|Boston|Los Angeles|Atlanta|Denver|Miami|Palo Alto|Sunnyvale|Mountain View|Menlo Park|San Jose|San Diego|Portland|Phoenix|Dallas|Houston|Minneapolis|Detroit|Nashville|Raleigh|Salt Lake City|Pittsburgh)[,\s]*(NY|CA|WA|TX|IL|MA|GA|CO|FL|OR|AZ|MN|MI|TN|NC|UT|PA)?\b/i
   );
   const location = isRemote ? "Remote" : locationMatch ? locationMatch[0].trim() : "United States";
 
