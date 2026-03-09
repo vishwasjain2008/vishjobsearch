@@ -15,12 +15,16 @@ interface ResumeUploadProps {
   userId?: string | null;
 }
 
-async function extractTextFromFile(file: File): Promise<string> {
+async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => resolve((e.target?.result as string) ?? "");
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      // Strip the data URL prefix, return only the base64 content
+      resolve(result.split(",")[1] ?? "");
+    };
     reader.onerror = reject;
-    reader.readAsText(file);
+    reader.readAsDataURL(file);
   });
 }
 
