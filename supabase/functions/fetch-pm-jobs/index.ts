@@ -95,10 +95,85 @@ function cleanATSName(name: string): string {
     .trim();
 }
 
+// ─── URL Validity Guard ───────────────────────────────────────────────────────
+// Returns true only if the URL looks like a direct, individual job posting page.
+function isDirectJobURL(url: string): boolean {
+  // Must be HTTPS
+  if (!url.startsWith("https://")) return false;
+
+  // Explicit blocklist — aggregator listing pages, blog posts, search result pages
+  const blocklist = [
+    // Search/listing pages (not individual jobs)
+    /indeed\.com\/q-/i,
+    /indeed\.com\/jobs/i,
+    /glassdoor\.com\/Job\/jobs\.htm/i,
+    /glassdoor\.com\/job-listing/i,
+    /linkedin\.com\/jobs\/search/i,
+    // Blog / article / resource pages
+    /\/blog\//i,
+    /\/article\//i,
+    /\/news\//i,
+    /\/resources\//i,
+    /\/guides\//i,
+    /\/insights\//i,
+    // Known aggregator / listicle domains
+    /productschool\.com/i,
+    /migratemate\.co/i,
+    /scouts\.yutori\.com/i,
+    /yutori\.com/i,
+    /remoterocketship\.com\/.*jobs$/i,     // listing pages (allow individual job pages)
+    /builtinchicago\.org.*\/jobs$/i,
+    /builtin\.com.*\/jobs$/i,
+    // Career landing pages (not individual job postings)
+    /\/careers\/?$/i,
+    /\/jobs\/?$/i,
+    /\/open-roles\/?$/i,
+    /\/join-us\/?$/i,
+    // Generic visa-info / job-board pages
+    /visa-sponsorship-jobs\/product-manager/i,
+    /q-product-manager/i,
+  ];
+  if (blocklist.some((re) => re.test(url))) return false;
+
+  // Allowlist — known ATS domains that always serve individual job pages
+  const atsAllowlist = [
+    /greenhouse\.io\/.+\/jobs\//i,
+    /lever\.co\/.+\//i,
+    /ashbyhq\.com\/.+\/jobs\//i,
+    /myworkdayjobs\.com\/.+\/job\//i,
+    /icims\.com\//i,
+    /smartrecruiters\.com\//i,
+    /jobs\.generalcatalyst\.com\//i,
+    /microsoft\.ai\/job\//i,
+    /careers\.snowflake\.com\/.+\/job\//i,
+    /workday\.wd\d+\.myworkdayjobs\.com/i,
+  ];
+  // If it matches a known ATS, it's valid
+  if (atsAllowlist.some((re) => re.test(url))) return true;
+
+  // For everything else: must contain a path segment that looks like a job ID / slug
+  // (at least 2 path segments after the domain, last segment non-trivial)
+  try {
+    const { pathname } = new URL(url);
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments.length < 2) return false;
+    const lastSeg = segments[segments.length - 1];
+    // Must not be a pure keyword like "jobs", "careers", "apply"
+    if (/^(jobs|careers|apply|positions|openings|roles|work|hiring|product-manager|senior-product-manager)$/.test(lastSeg)) return false;
+  } catch {
+    return false;
+  }
+
+  return true;
+}
+
 // Derive structured fields from a search result
 function parseJobFromResult(result: SearchResult, idx: number): JobResult | null {
   const { url, title: rawTitle, description } = result;
   if (!url || !rawTitle || !description) return null;
+
+  // Reject URLs that aren't direct individual job postings
+  if (!isDirectJobURL(url)) return null;
 
   // Extract company from title patterns like "Senior PM at Stripe" or "Stripe | Senior PM"
   let title = rawTitle;
@@ -400,11 +475,10 @@ Deno.serve(async (req) => {
       if (r.status === "fulfilled") allResults.push(...r.value);
     });
 
-    // Deduplicate by URL and exclude LinkedIn
+    // Deduplicate by URL — noise/aggregator URLs are filtered in parseJobFromResult via isDirectJobURL
     const seen = new Set<string>();
     const unique = allResults.filter((r) => {
       if (!r.url || seen.has(r.url)) return false;
-      if (/linkedin\.com/i.test(r.url)) return false;
       seen.add(r.url);
       return true;
     });
