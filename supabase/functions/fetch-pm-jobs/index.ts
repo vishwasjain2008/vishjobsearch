@@ -361,7 +361,29 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${unique.length} results → parsed ${jobs.length} PM jobs`);
 
-    return new Response(JSON.stringify({ success: true, jobs, total: jobs.length }), {
+    // Save to cache — clear old jobs first, then insert new batch
+    const now = new Date().toISOString();
+    await supabase.from("cached_jobs").delete().neq("id", "__placeholder__");
+    await supabase.from("cached_jobs").insert(
+      jobs.map((j) => ({
+        id: j.id, title: j.title, company: j.company, location: j.location,
+        is_remote: j.isRemote, is_hybrid: j.isHybrid, description: j.description,
+        required_skills: j.requiredSkills, salary_min: j.salaryMin, salary_max: j.salaryMax,
+        posted_date: j.postedDate, apply_link: j.applyLink, source: j.source,
+        match_score: j.matchScore, priority_score: j.priorityScore,
+        competition_level: j.competitionLevel, visa_status: j.visaStatus,
+        timing_tag: j.timingTag, strong_match_skills: j.strongMatchSkills,
+        partial_match_skills: j.partialMatchSkills, missing_skills: j.missingSkills,
+        industry: j.industry, seniority: j.seniority, cached_at: now,
+      }))
+    );
+    await supabase.from("job_cache_meta").update({ last_fetched_at: now, total_jobs: jobs.length }).eq("id", 1);
+    console.log(`Saved ${jobs.length} jobs to cache`);
+
+    return new Response(JSON.stringify({
+      success: true, jobs, total: jobs.length,
+      fromCache: false, cachedAt: now, nextRefreshDays: CACHE_TTL_DAYS,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
