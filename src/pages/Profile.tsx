@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { ResumeUpload } from "@/components/profile/ResumeUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,21 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CandidateProfile } from "@/types";
-import { User, Briefcase, GraduationCap, Award, MapPin, DollarSign, Plus, X, Edit3 } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, MapPin, Plus, X, Edit3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfile } from "@/hooks/useProfile";
 
 const Profile: React.FC = () => {
   const { profile, setProfile, userId } = useProfile();
   const [newSkill, setNewSkill] = useState("");
+  // Use a ref so the resume callback always captures the latest profile state
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
 
-  // Single atomic handler — avoids the race condition where two separate callbacks
-  // would each capture a stale `profile` snapshot and the second save would overwrite the first.
   const handleResumeComplete = (fileName: string, parsed?: Partial<CandidateProfile>) => {
-    setProfile({ ...profile, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
+    setProfile({ ...profileRef.current, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
   };
 
-  const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profile, ...partial });
+  const update = (partial: Partial<CandidateProfile>) => setProfile({ ...profileRef.current, ...partial });
 
   const addSkill = () => {
     if (newSkill.trim() && !profile.skills.includes(newSkill.trim())) {
@@ -201,12 +202,8 @@ const Profile: React.FC = () => {
               </Card>
 
               <Card>
-                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold flex items-center gap-2"><DollarSign className="w-4 h-4" />Compensation & Visa</CardTitle></CardHeader>
+                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold flex items-center gap-2"><Award className="w-4 h-4" />Visa</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label className="text-xs">Min Salary ($)</Label><Input type="number" value={profile.salaryMin} onChange={(e) => update({ salaryMin: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
-                    <div><Label className="text-xs">Max Salary ($)</Label><Input type="number" value={profile.salaryMax} onChange={(e) => update({ salaryMax: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
-                  </div>
                   <div className="rounded-lg border border-border p-3">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={profile.requiresVisaSponsorship} onChange={(e) => update({ requiresVisaSponsorship: e.target.checked })} className="w-4 h-4 accent-primary" />
