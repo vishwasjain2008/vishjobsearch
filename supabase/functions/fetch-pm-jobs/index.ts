@@ -214,16 +214,25 @@ function parseJobFromResult(result: SearchResult, idx: number): JobResult | null
   // Timing tag based on URL freshness heuristics
   const timingTag: JobResult["timingTag"] = idx < 5 ? "new" : idx < 15 ? "early" : "recent";
 
-  // Visa sponsorship detection from description text
+  // Visa sponsorship detection:
+  // 1) Text-based regex on description
+  // 2) Known H1B sponsor list (USCIS data) — overrides "unknown" → "friendly"
   const visaFriendlyRegex = /sponsor(s|ed|ing)?\s+(visa|work\s*auth|h[-\s]?1b)|will\s+sponsor|visa\s+sponsor(ship)?|h[-\s]?1b\s+sponsor|open\s+to\s+sponsor|support(s)?\s+visa|immigration\s+support/i;
   const visaRarelyRegex = /not\s+(able|eligible|authorized)\s+to\s+sponsor|no\s+visa\s+sponsor|unable\s+to\s+sponsor|cannot\s+sponsor|does\s+not\s+sponsor|sponsorship\s+not\s+(available|provided)|must\s+be\s+(authorized|eligible)\s+to\s+work|must\s+not\s+require\s+sponsor/i;
-  const visaStatus: JobResult["visaStatus"] =
+  const textVisaStatus: JobResult["visaStatus"] =
     visaFriendlyRegex.test(combinedText) ? "friendly" :
     visaRarelyRegex.test(combinedText) ? "rarely" : "unknown";
 
-  // Match/priority scores — boost visa-friendly jobs
+  // If text says "rarely" keep it; otherwise H1B list can upgrade to "friendly"
+  const knownSponsor = isKnownH1BSponsor(company);
+  const visaStatus: JobResult["visaStatus"] =
+    textVisaStatus === "rarely" ? "rarely" :
+    (textVisaStatus === "friendly" || knownSponsor) ? "friendly" : "unknown";
+
+  // Match/priority scores — significant boost for known H1B sponsors and visa-friendly
+  const visaBoost = visaStatus === "friendly" ? (knownSponsor ? 15 : 10) : 0;
   const matchScore = Math.min(95, 65 + strongMatchSkills.length * 5);
-  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + (visaStatus === "friendly" ? 10 : 0));
+  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + visaBoost);
 
   // Industry guess
   const industryMap: [RegExp, string][] = [
