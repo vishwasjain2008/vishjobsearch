@@ -18,7 +18,7 @@ const emptyProfile: CandidateProfile = {
   certifications: [],
   desiredTitles: [],
   preferredLocations: [],
-  remotePreference: "flexible",
+  remotePreference: [],
   salaryMin: 0,
   salaryMax: 0,
   requiresVisaSponsorship: false,
@@ -48,6 +48,18 @@ export function useProfile() {
           .maybeSingle();
 
         if (data && mounted) {
+          // remote_preference: stored as text in DB, migrate to array gracefully
+          let remoteArr: CandidateProfile["remotePreference"] = [];
+          if (data.remote_preference) {
+            try {
+              const parsed = JSON.parse(data.remote_preference);
+              if (Array.isArray(parsed)) remoteArr = parsed;
+              else remoteArr = [parsed as any];
+            } catch {
+              remoteArr = [data.remote_preference as any];
+            }
+          }
+
           setProfileState({
             id: data.id,
             name: data.name ?? "",
@@ -64,7 +76,7 @@ export function useProfile() {
             certifications: (data.certifications as any) ?? [],
             desiredTitles: data.desired_titles ?? [],
             preferredLocations: data.preferred_locations ?? [],
-            remotePreference: (data.remote_preference as any) ?? "flexible",
+            remotePreference: remoteArr,
             salaryMin: data.salary_min ?? 0,
             salaryMax: data.salary_max ?? 0,
             requiresVisaSponsorship: data.requires_visa_sponsorship ?? false,
@@ -98,13 +110,14 @@ export function useProfile() {
       certifications: p.certifications as any,
       desired_titles: p.desiredTitles,
       preferred_locations: p.preferredLocations,
-      remote_preference: p.remotePreference,
+      // Store array as JSON string (DB column is text)
+      remote_preference: JSON.stringify(p.remotePreference),
       salary_min: p.salaryMin,
       salary_max: p.salaryMax,
       requires_visa_sponsorship: p.requiresVisaSponsorship,
       years_of_experience: p.yearsOfExperience,
       resume_file_name: p.resumeFileName,
-    }, { onConflict: "user_id" });
+    } as any, { onConflict: "user_id" });
   }, [userId]);
 
   return { profile, setProfile: saveProfile, userId, loading };

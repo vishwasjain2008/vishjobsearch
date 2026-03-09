@@ -11,11 +11,11 @@ import type { CandidateProfile } from "@/types";
 import { User, Briefcase, GraduationCap, Award, MapPin, Plus, X, Edit3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfile } from "@/hooks/useProfile";
+import { cn } from "@/lib/utils";
 
 const Profile: React.FC = () => {
   const { profile, setProfile, userId } = useProfile();
   const [newSkill, setNewSkill] = useState("");
-  // Use a ref so the resume callback always captures the latest profile state
   const profileRef = useRef(profile);
   profileRef.current = profile;
 
@@ -34,12 +34,21 @@ const Profile: React.FC = () => {
 
   const removeSkill = (s: string) => update({ skills: profile.skills.filter((sk) => sk !== s) });
 
-  const remoteOptions: { value: CandidateProfile["remotePreference"]; label: string }[] = [
+  type RemoteOption = CandidateProfile["remotePreference"][number];
+  const remoteOptions: { value: RemoteOption; label: string }[] = [
     { value: "remote", label: "Remote Only" },
     { value: "hybrid", label: "Hybrid" },
     { value: "onsite", label: "Onsite" },
     { value: "flexible", label: "Flexible" },
   ];
+
+  const toggleRemote = (value: RemoteOption) => {
+    const current = profile.remotePreference;
+    const next = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    update({ remotePreference: next });
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -110,6 +119,13 @@ const Profile: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="experience" className="space-y-4 animate-fade-in">
+            {profile.experience.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-sm text-muted-foreground">No experience entries yet. Upload your resume to auto-populate.</p>
+                </CardContent>
+              </Card>
+            )}
             {profile.experience.map((exp, i) => (
               <Card key={i}>
                 <CardContent className="p-4">
@@ -136,6 +152,7 @@ const Profile: React.FC = () => {
             <Card>
               <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><GraduationCap className="w-4 h-4" />Education</CardTitle></CardHeader>
               <CardContent className="space-y-2 px-4 pb-4">
+                {profile.education.length === 0 && <p className="text-xs text-muted-foreground">Upload your resume to auto-populate education.</p>}
                 {profile.education.map((ed, i) => (
                   <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
                     <div className="flex-1">
@@ -150,6 +167,7 @@ const Profile: React.FC = () => {
             <Card>
               <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><Award className="w-4 h-4" />Certifications</CardTitle></CardHeader>
               <CardContent className="space-y-2 px-4 pb-4">
+                {profile.certifications.length === 0 && <p className="text-xs text-muted-foreground">Upload your resume to auto-populate certifications.</p>}
                 {profile.certifications.map((cert, i) => (
                   <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
                     <div className="flex-1">
@@ -179,13 +197,25 @@ const Profile: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs mb-2 block">Remote Preference</Label>
+                    <Label className="text-xs mb-2 block">Remote Preference <span className="text-muted-foreground">(select all that apply)</span></Label>
                     <div className="flex flex-wrap gap-1.5">
-                      {remoteOptions.map(({ value, label }) => (
-                        <button key={value} onClick={() => update({ remotePreference: value })}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${profile.remotePreference === value ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:border-primary/50"}`}
-                        >{label}</button>
-                      ))}
+                      {remoteOptions.map(({ value, label }) => {
+                        const selected = profile.remotePreference.includes(value);
+                        return (
+                          <button
+                            key={value}
+                            onClick={() => toggleRemote(value)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
+                              selected
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                            )}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                   <div>
