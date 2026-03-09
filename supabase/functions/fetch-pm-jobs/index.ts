@@ -79,6 +79,11 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
     company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  // Fallback: if company still unknown, use ATS URL slug
+  if ((company === "Unknown" || company === "") && atsCompanyMatch) {
+    company = atsCompanyMatch[1].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   // Clean title of ATS suffixes too
   title = cleanATSName(title);
 
