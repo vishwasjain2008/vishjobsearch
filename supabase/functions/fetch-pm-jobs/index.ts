@@ -39,6 +39,53 @@ interface JobResult {
   seniority: string;
 }
 
+// ─── H1B Sponsor List ────────────────────────────────────────────────────────
+// Derived from USCIS H-1B Employer Data Hub (public, one-time data):
+// https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub
+// Top tech/product companies with consistent H1B approval history.
+// Matched case-insensitively against parsed company names.
+const H1B_SPONSORS = new Set([
+  // Big Tech
+  "google", "alphabet", "microsoft", "amazon", "apple", "meta", "netflix",
+  "salesforce", "oracle", "ibm", "intel", "qualcomm", "nvidia",
+  // Cloud / SaaS
+  "servicenow", "workday", "sap", "adobe", "vmware", "palo alto networks",
+  "cloudflare", "datadog", "snowflake", "databricks", "twilio",
+  "zendesk", "hubspot", "freshworks", "okta", "elastic",
+  // FinTech
+  "stripe", "block", "square", "paypal", "braintree", "adyen", "affirm",
+  "robinhood", "coinbase", "chime", "plaid", "brex",
+  // E-commerce / Marketplace
+  "ebay", "etsy", "shopify", "doordash", "instacart", "grubhub", "wayfair",
+  "chewy", "poshmark",
+  // Rideshare / Mobility
+  "uber", "lyft",
+  // Health / Bio Tech
+  "epic systems", "veeva", "tempus", "illumina", "moderna",
+  // Media / Entertainment
+  "spotify", "twitch", "reddit", "pinterest", "snap", "tiktok", "bytedance",
+  // Enterprise / Security
+  "crowdstrike", "splunk", "zscaler", "fortinet", "rapid7",
+  // Dev Tools / Infra
+  "atlassian", "github", "gitlab", "hashicorp", "confluent", "mongodb",
+  "elastic", "supabase", "vercel",
+  // Other high-volume H1B tech employers
+  "linkedin", "dropbox", "box", "zoom", "slack", "airbnb", "expedia",
+  "booking", "tripadvisor", "yelp", "glassdoor",
+  // Consulting / staffing (large H1B filers, but product roles exist)
+  "cognizant", "infosys", "wipro", "tata consultancy", "hcl",
+  "accenture", "deloitte", "capgemini",
+]);
+
+/** Returns true if the company name matches any known H1B sponsor */
+function isKnownH1BSponsor(company: string): boolean {
+  const lower = company.toLowerCase();
+  for (const sponsor of H1B_SPONSORS) {
+    if (lower.includes(sponsor)) return true;
+  }
+  return false;
+}
+
 // Strip ATS platform suffixes from company/title strings
 function cleanATSName(name: string): string {
   return name
@@ -167,16 +214,25 @@ function parseJobFromResult(result: SearchResult, idx: number): JobResult | null
   // Timing tag based on URL freshness heuristics
   const timingTag: JobResult["timingTag"] = idx < 5 ? "new" : idx < 15 ? "early" : "recent";
 
-  // Visa sponsorship detection from description text
+  // Visa sponsorship detection:
+  // 1) Text-based regex on description
+  // 2) Known H1B sponsor list (USCIS data) — overrides "unknown" → "friendly"
   const visaFriendlyRegex = /sponsor(s|ed|ing)?\s+(visa|work\s*auth|h[-\s]?1b)|will\s+sponsor|visa\s+sponsor(ship)?|h[-\s]?1b\s+sponsor|open\s+to\s+sponsor|support(s)?\s+visa|immigration\s+support/i;
   const visaRarelyRegex = /not\s+(able|eligible|authorized)\s+to\s+sponsor|no\s+visa\s+sponsor|unable\s+to\s+sponsor|cannot\s+sponsor|does\s+not\s+sponsor|sponsorship\s+not\s+(available|provided)|must\s+be\s+(authorized|eligible)\s+to\s+work|must\s+not\s+require\s+sponsor/i;
-  const visaStatus: JobResult["visaStatus"] =
+  const textVisaStatus: JobResult["visaStatus"] =
     visaFriendlyRegex.test(combinedText) ? "friendly" :
     visaRarelyRegex.test(combinedText) ? "rarely" : "unknown";
 
-  // Match/priority scores — boost visa-friendly jobs
+  // If text says "rarely" keep it; otherwise H1B list can upgrade to "friendly"
+  const knownSponsor = isKnownH1BSponsor(company);
+  const visaStatus: JobResult["visaStatus"] =
+    textVisaStatus === "rarely" ? "rarely" :
+    (textVisaStatus === "friendly" || knownSponsor) ? "friendly" : "unknown";
+
+  // Match/priority scores — significant boost for known H1B sponsors and visa-friendly
+  const visaBoost = visaStatus === "friendly" ? (knownSponsor ? 15 : 10) : 0;
   const matchScore = Math.min(95, 65 + strongMatchSkills.length * 5);
-  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + (visaStatus === "friendly" ? 10 : 0));
+  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + visaBoost);
 
   // Industry guess
   const industryMap: [RegExp, string][] = [
@@ -291,21 +347,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search queries — visa-sponsorship queries first for priority ordering
+    // Search queries — H1B/visa-sponsorship queries first, then targeted big-sponsor queries, then broad
     const queries = [
-      // Visa-sponsorship queries first
-      "Product Manager visa sponsorship United States site:greenhouse.io OR site:lever.co",
-      "Senior Product Manager will sponsor H-1B United States site:ashbyhq.com OR site:greenhouse.io",
-      "Product Manager immigration support work authorization sponsor USA site:lever.co OR site:greenhouse.io",
-      // General US-only PM queries
+      // ── H1B / Visa sponsorship targeted ──────────────────────────────────
+      "Product Manager H1B visa sponsorship sponsor United States site:greenhouse.io OR site:lever.co",
+      "Senior Product Manager will sponsor H-1B visa 2025 United States site:ashbyhq.com OR site:greenhouse.io",
+      "Product Manager immigration sponsorship work authorization USA site:lever.co OR site:greenhouse.io",
+      // ── Top known H1B sponsors (USCIS data) ──────────────────────────────
+      "Product Manager Google Microsoft Amazon Salesforce Stripe 2025 site:greenhouse.io OR site:lever.co",
+      "Senior Product Manager Uber Lyft DoorDash Airbnb Shopify United States site:greenhouse.io OR site:lever.co",
+      "Product Manager Snowflake Databricks Cloudflare Datadog United States site:ashbyhq.com OR site:greenhouse.io",
+      // ── General US PM queries ─────────────────────────────────────────────
       "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
       "Product Manager hiring United States site:ashbyhq.com OR site:myworkdayjobs.com",
-      "Senior PM role United States apply site:jobs.lever.co OR site:boards.greenhouse.io",
       "Principal Product Manager United States site:icims.com OR site:smartrecruiters.com",
       "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
       "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
-      "Product Manager fintech United States site:ashbyhq.com OR site:myworkdayjobs.com",
-      "Senior Product Manager United States site:myworkdayjobs.com",
       "Product Manager United States 2025 site:myworkdayjobs.com",
     ];
 
