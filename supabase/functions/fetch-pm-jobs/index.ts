@@ -39,6 +39,53 @@ interface JobResult {
   seniority: string;
 }
 
+// ─── H1B Sponsor List ────────────────────────────────────────────────────────
+// Derived from USCIS H-1B Employer Data Hub (public, one-time data):
+// https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub
+// Top tech/product companies with consistent H1B approval history.
+// Matched case-insensitively against parsed company names.
+const H1B_SPONSORS = new Set([
+  // Big Tech
+  "google", "alphabet", "microsoft", "amazon", "apple", "meta", "netflix",
+  "salesforce", "oracle", "ibm", "intel", "qualcomm", "nvidia",
+  // Cloud / SaaS
+  "servicenow", "workday", "sap", "adobe", "vmware", "palo alto networks",
+  "cloudflare", "datadog", "snowflake", "databricks", "twilio",
+  "zendesk", "hubspot", "freshworks", "okta", "elastic",
+  // FinTech
+  "stripe", "block", "square", "paypal", "braintree", "adyen", "affirm",
+  "robinhood", "coinbase", "chime", "plaid", "brex",
+  // E-commerce / Marketplace
+  "ebay", "etsy", "shopify", "doordash", "instacart", "grubhub", "wayfair",
+  "chewy", "poshmark",
+  // Rideshare / Mobility
+  "uber", "lyft",
+  // Health / Bio Tech
+  "epic systems", "veeva", "tempus", "illumina", "moderna",
+  // Media / Entertainment
+  "spotify", "twitch", "reddit", "pinterest", "snap", "tiktok", "bytedance",
+  // Enterprise / Security
+  "crowdstrike", "splunk", "zscaler", "fortinet", "rapid7",
+  // Dev Tools / Infra
+  "atlassian", "github", "gitlab", "hashicorp", "confluent", "mongodb",
+  "elastic", "supabase", "vercel",
+  // Other high-volume H1B tech employers
+  "linkedin", "dropbox", "box", "zoom", "slack", "airbnb", "expedia",
+  "booking", "tripadvisor", "yelp", "glassdoor",
+  // Consulting / staffing (large H1B filers, but product roles exist)
+  "cognizant", "infosys", "wipro", "tata consultancy", "hcl",
+  "accenture", "deloitte", "capgemini",
+]);
+
+/** Returns true if the company name matches any known H1B sponsor */
+function isKnownH1BSponsor(company: string): boolean {
+  const lower = company.toLowerCase();
+  for (const sponsor of H1B_SPONSORS) {
+    if (lower.includes(sponsor)) return true;
+  }
+  return false;
+}
+
 // Strip ATS platform suffixes from company/title strings
 function cleanATSName(name: string): string {
   return name
