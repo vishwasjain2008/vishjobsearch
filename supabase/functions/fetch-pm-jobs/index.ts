@@ -286,7 +286,7 @@ function parseJobFromResult(result: SearchResult, idx: number): JobResult | null
   };
 }
 
-const CACHE_TTL_DAYS = 10; // Only hit Firecrawl once every 10 days (~3x/month = within free tier)
+const CACHE_TTL_DAYS = 10; // Only hit Tavily once every 10 days to conserve API credits
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
