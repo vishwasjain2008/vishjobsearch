@@ -185,11 +185,11 @@ Deno.serve(async (req) => {
 
     // Search queries to cast a wide net across job boards
     const queries = [
-      "Senior Product Manager job opening 2024 2025",
-      "Product Manager role hiring now site:linkedin.com/jobs",
-      "Senior PM job apply now site:greenhouse.io OR site:lever.co",
-      "Principal Product Manager job posting site:ashbyhq.com OR site:workday.com",
-      "Director of Product Management hiring 2025",
+      "Senior Product Manager job opening 2025 site:greenhouse.io OR site:lever.co",
+      "Product Manager hiring now site:ashbyhq.com OR site:workday.com",
+      "Senior PM role apply site:jobs.lever.co OR site:boards.greenhouse.io",
+      "Principal Product Manager job posting site:icims.com OR site:smartrecruiters.com",
+      "Director of Product Management hiring 2025 site:greenhouse.io OR site:ashbyhq.com",
     ];
 
     const allResults: FirecrawlSearchResult[] = [];
