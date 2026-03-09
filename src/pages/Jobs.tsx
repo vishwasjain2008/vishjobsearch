@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { scoreJobAgainstProfile, deduplicateJobs } from "@/lib/jobScoring";
 
 const CACHE_TTL_DAYS = 10;
 
@@ -21,12 +22,23 @@ const Jobs: React.FC = () => {
   const [showFilters, setShowFilters] = useState(true);
   const { profile } = useProfile();
 
-  const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [rawJobs, setRawJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [nextRefreshDays, setNextRefreshDays] = useState<number | null>(null);
   const [showRefreshWarning, setShowRefreshWarning] = useState(false);
+
+  // Apply profile-aware scoring + dedup whenever raw jobs or profile changes
+  const jobs = useMemo(() => {
+    const hasProfile = profile.skills.length > 0 || profile.tools.length > 0;
+    const scored = rawJobs.map((job) => {
+      const updates = hasProfile ? scoreJobAgainstProfile(job, profile) : {};
+      return { ...job, ...updates };
+    });
+    const deduped = deduplicateJobs(scored);
+    return deduped;
+  }, [rawJobs, profile]);
 
   const cacheAgeDays = cachedAt
     ? (Date.now() - new Date(cachedAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -42,7 +54,7 @@ const Jobs: React.FC = () => {
       });
       if (error) throw error;
       if (data?.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
-        setJobs(data.jobs);
+        setRawJobs(data.jobs);
         setIsLive(true);
         setCachedAt(data.cachedAt ?? null);
         setNextRefreshDays(data.nextRefreshDays ?? null);
@@ -52,12 +64,12 @@ const Jobs: React.FC = () => {
           toast.success(`${data.jobs.length} fresh PM jobs fetched & saved`);
         }
       } else {
-        setJobs(mockJobs);
+        setRawJobs(mockJobs);
         toast.error("No jobs returned — showing sample data");
       }
     } catch (err) {
       console.error("fetch-pm-jobs error:", err);
-      setJobs(mockJobs);
+      setRawJobs(mockJobs);
       toast.error("Could not load jobs — showing sample data");
     } finally {
       setLoading(false);
@@ -106,6 +118,8 @@ const Jobs: React.FC = () => {
 
   const newCount = jobs.filter((j) => j.timingTag === "new").length;
   const earlyCount = jobs.filter((j) => j.timingTag === "early").length;
+  const hasProfile = profile.skills.length > 0 || profile.tools.length > 0;
+  const dupesRemoved = rawJobs.length - jobs.length;
 
   const cacheLabel = cachedAt
     ? cacheAgeDays !== null && cacheAgeDays < 1
@@ -119,7 +133,7 @@ const Jobs: React.FC = () => {
     <div className="flex flex-col h-full">
       <Header
         title="Job Discovery"
-        subtitle={`${jobs.length} jobs · ${newCount} new today · ${earlyCount} early opportunities`}
+        subtitle={`${jobs.length} jobs${dupesRemoved > 0 ? ` (${dupesRemoved} dupes removed)` : ""} · ${newCount} new today · ${earlyCount} early opportunities${hasProfile ? " · scored against your profile" : ""}`}
       />
 
       <div className="flex flex-1 min-h-0">
