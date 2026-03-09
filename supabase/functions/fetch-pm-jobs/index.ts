@@ -475,11 +475,10 @@ Deno.serve(async (req) => {
       if (r.status === "fulfilled") allResults.push(...r.value);
     });
 
-    // Deduplicate by URL and exclude LinkedIn
+    // Deduplicate by URL — noise/aggregator URLs are filtered in parseJobFromResult via isDirectJobURL
     const seen = new Set<string>();
     const unique = allResults.filter((r) => {
       if (!r.url || seen.has(r.url)) return false;
-      if (/linkedin\.com/i.test(r.url)) return false;
       seen.add(r.url);
       return true;
     });
