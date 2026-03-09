@@ -202,12 +202,8 @@ const Profile: React.FC = () => {
               </Card>
 
               <Card>
-                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold flex items-center gap-2"><DollarSign className="w-4 h-4" />Compensation & Visa</CardTitle></CardHeader>
+                <CardHeader className="pb-4"><CardTitle className="text-sm font-bold flex items-center gap-2"><Award className="w-4 h-4" />Visa</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label className="text-xs">Min Salary ($)</Label><Input type="number" value={profile.salaryMin} onChange={(e) => update({ salaryMin: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
-                    <div><Label className="text-xs">Max Salary ($)</Label><Input type="number" value={profile.salaryMax} onChange={(e) => update({ salaryMax: +e.target.value })} className="mt-1 h-9 text-sm" /></div>
-                  </div>
                   <div className="rounded-lg border border-border p-3">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={profile.requiresVisaSponsorship} onChange={(e) => update({ requiresVisaSponsorship: e.target.checked })} className="w-4 h-4 accent-primary" />
