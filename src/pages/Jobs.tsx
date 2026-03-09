@@ -133,12 +133,12 @@ const Jobs: React.FC = () => {
                 ))}
               </div>
               <Button
-                variant="ghost" size="icon" className={cn("h-8 w-8", loading && "animate-spin")}
+                variant="ghost" size="icon" className="h-8 w-8"
                 onClick={fetchRealJobs}
                 disabled={loading}
                 title="Refresh live jobs"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               </Button>
             </div>
 

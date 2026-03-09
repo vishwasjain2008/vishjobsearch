@@ -23,7 +23,7 @@ interface JobCardProps {
   compact?: boolean;
 }
 
-const ScoreBadge: React.FC<{ score: number; label: string }> = ({ score, label }) => {
+const ScoreBadge = ({ score, label }: { score: number; label: string }) => {
   const color = score >= 80 ? "text-score-high" : score >= 65 ? "text-score-medium" : "text-score-low";
   const bg = score >= 80 ? "bg-success/10" : score >= 65 ? "bg-warning/10" : "bg-destructive/10";
   return (
@@ -34,7 +34,7 @@ const ScoreBadge: React.FC<{ score: number; label: string }> = ({ score, label }
   );
 };
 
-const VisaBadge: React.FC<{ status: JobListing["visaStatus"] }> = ({ status }) => {
+const VisaBadge = ({ status }: { status: JobListing["visaStatus"] }) => {
   const map = {
     friendly: { icon: ShieldCheck, color: "text-visa-friendly", bg: "bg-success/10", label: "Visa Friendly" },
     unknown: { icon: ShieldQuestion, color: "text-visa-unknown", bg: "bg-muted", label: "Unknown" },
@@ -49,12 +49,12 @@ const VisaBadge: React.FC<{ status: JobListing["visaStatus"] }> = ({ status }) =
   );
 };
 
-const TimingTag: React.FC<{ tag: JobListing["timingTag"] }> = ({ tag }) => {
+const TimingTag = ({ tag }: { tag: JobListing["timingTag"] }) => {
   if (tag === "new") return (
-    <Badge className="bg-new-badge text-white border-0 text-xs animate-pulse">🔥 New &lt;24h</Badge>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-new-badge text-white animate-pulse">🔥 New &lt;24h</span>
   );
   if (tag === "early") return (
-    <Badge className="bg-early-badge text-white border-0 text-xs">⚡ Early Opp &lt;48h</Badge>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-early-badge text-white">⚡ Early Opp &lt;48h</span>
   );
   return null;
 };

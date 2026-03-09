@@ -152,11 +152,16 @@ function parseJobFromResult(result: FirecrawlSearchResult, idx: number): JobResu
   ];
   const industry = industryMap.find(([re]) => re.test(combinedText))?.[1] ?? "Technology";
 
-  // Source from URL
+  // Source from URL — show the ATS platform name
   const sourceMap: [RegExp, string][] = [
-    [/indeed/i, "Indeed"],
-    [/glassdoor/i, "Glassdoor"],
-    [/lever\.co|greenhouse\.io|workday|icims|smartrecruiters|ashby/i, "Company Website"],
+    [/greenhouse\.io/i, "Greenhouse"],
+    [/lever\.co/i, "Lever"],
+    [/ashbyhq\.com/i, "Ashby"],
+    [/workday\.com/i, "Workday"],
+    [/icims\.com/i, "iCIMS"],
+    [/smartrecruiters\.com/i, "SmartRecruiters"],
+    [/indeed\.com/i, "Indeed"],
+    [/glassdoor\.com/i, "Glassdoor"],
   ];
   const source = sourceMap.find(([re]) => re.test(url))?.[1] ?? "Company Website";
 
