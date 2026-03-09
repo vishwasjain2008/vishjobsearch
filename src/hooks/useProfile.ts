@@ -1,14 +1,37 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { CandidateProfile } from "@/types";
-import { mockProfile } from "@/data/mockData";
+
+const emptyProfile: CandidateProfile = {
+  id: "",
+  name: "",
+  email: "",
+  phone: "",
+  location: "",
+  currentTitle: "",
+  summary: "",
+  skills: [],
+  tools: [],
+  industries: [],
+  experience: [],
+  education: [],
+  certifications: [],
+  desiredTitles: [],
+  preferredLocations: [],
+  remotePreference: "flexible",
+  salaryMin: 0,
+  salaryMax: 0,
+  requiresVisaSponsorship: false,
+  yearsOfExperience: 0,
+  resumeUploaded: false,
+  resumeFileName: undefined,
+};
 
 export function useProfile() {
-  const [profile, setProfileState] = useState<CandidateProfile>(mockProfile);
+  const [profile, setProfileState] = useState<CandidateProfile>(emptyProfile);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user + profile on mount
   useEffect(() => {
     let mounted = true;
     (async () => {
