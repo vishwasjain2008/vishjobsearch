@@ -142,7 +142,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
             </span>
           </div>
           <div className="flex gap-1.5">
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(e) => { e.stopPropagation(); window.open(job.applyLink); }}>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(e) => { e.stopPropagation(); window.open(buildApplyUrl(job), "_blank", "noopener,noreferrer"); }}>
               <ExternalLink className="w-3 h-3 mr-1" />
               Apply
             </Button>
