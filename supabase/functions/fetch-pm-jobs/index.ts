@@ -167,10 +167,30 @@ function isDirectJobURL(url: string): boolean {
   return true;
 }
 
+// Reject titles that look like search result pages / job listing aggregations
+function isSpuriousTitle(title: string): boolean {
+  // e.g. "15,450 senior product manager Jobs in the United States, November 2025"
+  if (/^\d[\d,]+\s+.+\bjobs?\b/i.test(title)) return true;
+  // e.g. "Senior Product Manager Jobs in United States | LinkedIn"
+  if (/\bjobs?\s+(in|at|for|near)\b.{0,60}(linkedin|indeed|glassdoor|ziprecruiter|monster|simplyhired|dice|builtin|wellfound|angellist)/i.test(title)) return true;
+  // e.g. "Product Manager Jobs, Employment | Indeed.com"
+  if (/\bjobs?,?\s+(employment|opportunities|openings|listings|postings)\b/i.test(title)) return true;
+  // e.g. "Search Product Manager Jobs" or "Find Product Manager Jobs"
+  if (/^(search|find|browse|view|explore)\s+.+\bjobs?\b/i.test(title)) return true;
+  // e.g. "Product Manager Jobs | Nov 2025 | ..."
+  if (/\bjobs?\s*\|\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}/i.test(title)) return true;
+  // e.g. "Product Manager Job Listings" or "Product Manager Careers"
+  if (/\b(job listings|job board|job search|career opportunities|current openings|open positions)\b/i.test(title)) return true;
+  return false;
+}
+
 // Derive structured fields from a search result
 function parseJobFromResult(result: SearchResult, idx: number): JobResult | null {
   const { url, title: rawTitle, description } = result;
   if (!url || !rawTitle || !description) return null;
+
+  // Reject search result / listing page titles
+  if (isSpuriousTitle(rawTitle)) return null;
 
   // Reject URLs that aren't direct individual job postings
   if (!isDirectJobURL(url)) return null;
