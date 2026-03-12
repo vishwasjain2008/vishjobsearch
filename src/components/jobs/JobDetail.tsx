@@ -8,9 +8,22 @@ import type { JobListing, CandidateProfile } from "@/types";
 import { ResumeOptimizer } from "@/components/jobs/ResumeOptimizer";
 import {
   X, MapPin, DollarSign, Clock, Wifi, Building2, ExternalLink,
-  MessageSquare, BookOpen, ShieldCheck, ShieldQuestion, ShieldX,
-  CheckCircle2, AlertCircle, XCircle, Sparkles, Star,
+  BookOpen, ShieldCheck, ShieldQuestion, ShieldX,
+  CheckCircle2, AlertCircle, XCircle, Sparkles, Star, AlertTriangle,
 } from "lucide-react";
+
+type ExpiryState = "unknown" | "checking" | "expired" | "ok";
+
+async function check404(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) });
+    return res.status === 404 || res.status === 410;
+  } catch {
+    return false;
+  }
+}
+
+const JOB_EXPIRY_DAYS = 90;
 
 // Route to the correct job board based on source, using exact title + company
 const buildApplyUrl = (job: JobListing): string => {
@@ -44,8 +57,7 @@ const interviewQuestions = [
 
 export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [optimizing, setOptimizing] = useState(false);
-  const [optimized, setOptimized] = useState(false);
+  const [expiryState, setExpiryState] = useState<ExpiryState>("unknown");
 
   if (!job) return null;
 
@@ -55,10 +67,21 @@ export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) =
 
   const hoursAgo = Math.round((Date.now() - new Date(job.postedDate).getTime()) / 36e5);
   const timeLabel = hoursAgo < 24 ? `${hoursAgo} hours ago` : `${Math.floor(hoursAgo / 24)} days ago`;
+  const ageDays = (Date.now() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24);
+  const mayBeExpired = ageDays >= JOB_EXPIRY_DAYS;
 
-  const handleOptimize = () => {
-    setOptimizing(true);
-    setTimeout(() => { setOptimizing(false); setOptimized(true); }, 2200);
+  const handleApply = async () => {
+    const url = buildApplyUrl(job);
+    if (expiryState === "expired") {
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(`"${job.title}" ${job.company} job`)}&ibp=htl;jobs`, "_blank", "noopener,noreferrer");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+    if (expiryState === "unknown") {
+      setExpiryState("checking");
+      const is404 = await check404(url);
+      setExpiryState(is404 ? "expired" : "ok");
+    }
   };
 
   const visaMap = {
@@ -149,9 +172,33 @@ export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) =
               </div>
               <p className="text-xs text-muted-foreground">{visa.desc}</p>
             </div>
+            {/* Expiry notice */}
+            {expiryState === "expired" && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                <XCircle className="w-4 h-4 text-destructive shrink-0" />
+                <p className="text-xs font-medium text-destructive">Job expired — Apply will search for it on Google Jobs instead</p>
+              </div>
+            )}
+            {mayBeExpired && expiryState !== "expired" && expiryState !== "ok" && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning/10 border border-warning/20">
+                <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
+                <p className="text-xs font-medium text-warning">May be expired · posted {Math.floor(ageDays)} days ago</p>
+              </div>
+            )}
             <div className="flex gap-2">
-              <Button className="flex-1 gap-2" onClick={() => window.open(buildApplyUrl(job), "_blank", "noopener,noreferrer")}>
-                <ExternalLink className="w-4 h-4" />Apply Now
+              <Button
+                className="flex-1 gap-2"
+                variant={expiryState === "expired" ? "destructive" : "default"}
+                onClick={handleApply}
+                disabled={expiryState === "checking"}
+              >
+                {expiryState === "expired" ? (
+                  <><XCircle className="w-4 h-4" />Job Expired</>
+                ) : expiryState === "checking" ? (
+                  <span className="animate-pulse">Checking link…</span>
+                ) : (
+                  <><ExternalLink className="w-4 h-4" />Apply Now</>
+                )}
               </Button>
               <Button variant="outline" className="flex-1 gap-2">
                 <Star className="w-4 h-4" />Save Job

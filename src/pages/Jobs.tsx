@@ -81,6 +81,22 @@ const Jobs: React.FC = () => {
     fetchJobs(false);
   }, [fetchJobs]);
 
+  // Re-score cached jobs whenever a fresh profile is parsed from a resume
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const updatedProfile = (e as CustomEvent<typeof profile>).detail;
+      if (!updatedProfile || rawJobs.length === 0) return;
+      const hasData = updatedProfile.skills.length > 0 || updatedProfile.tools.length > 0;
+      if (!hasData) return;
+      setRawJobs((prev) =>
+        prev.map((job) => ({ ...job, ...scoreJobAgainstProfile(job, updatedProfile) }))
+      );
+      toast.success("Scores updated based on your profile");
+    };
+    window.addEventListener("profile:updated", handler);
+    return () => window.removeEventListener("profile:updated", handler);
+  }, [rawJobs.length]);
+
   const handleRefreshClick = () => {
     if (!cacheIsStale) {
       // Cache is fresh — warn user before burning credits

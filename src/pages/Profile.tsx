@@ -22,12 +22,15 @@ const Profile: React.FC = () => {
   profileRef.current = profile;
 
   const handleResumeComplete = (fileName: string, parsed?: Partial<CandidateProfile>) => {
-    setProfile({ ...profileRef.current, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName });
+    const updated = { ...profileRef.current, ...(parsed ?? {}), resumeUploaded: true, resumeFileName: fileName };
+    setProfile(updated);
     if (parsed) {
       // Auto-navigate to profile tab and show confirmation banner
       setActiveTab("profile");
       setParsedBanner(true);
       setTimeout(() => setParsedBanner(false), 6000);
+      // Signal the Jobs page to re-score cached jobs against the new profile
+      window.dispatchEvent(new CustomEvent("profile:updated", { detail: updated }));
     }
   };
 
