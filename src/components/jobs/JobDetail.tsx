@@ -57,8 +57,7 @@ const interviewQuestions = [
 
 export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [optimizing, setOptimizing] = useState(false);
-  const [optimized, setOptimized] = useState(false);
+  const [expiryState, setExpiryState] = useState<ExpiryState>("unknown");
 
   if (!job) return null;
 
@@ -68,10 +67,21 @@ export const JobDetail: React.FC<JobDetailProps> = ({ job, onClose, profile }) =
 
   const hoursAgo = Math.round((Date.now() - new Date(job.postedDate).getTime()) / 36e5);
   const timeLabel = hoursAgo < 24 ? `${hoursAgo} hours ago` : `${Math.floor(hoursAgo / 24)} days ago`;
+  const ageDays = (Date.now() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24);
+  const mayBeExpired = ageDays >= JOB_EXPIRY_DAYS;
 
-  const handleOptimize = () => {
-    setOptimizing(true);
-    setTimeout(() => { setOptimizing(false); setOptimized(true); }, 2200);
+  const handleApply = async () => {
+    const url = buildApplyUrl(job);
+    if (expiryState === "expired") {
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(`"${job.title}" ${job.company} job`)}&ibp=htl;jobs`, "_blank", "noopener,noreferrer");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+    if (expiryState === "unknown") {
+      setExpiryState("checking");
+      const is404 = await check404(url);
+      setExpiryState(is404 ? "expired" : "ok");
+    }
   };
 
   const visaMap = {
