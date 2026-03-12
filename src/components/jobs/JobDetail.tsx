@@ -8,9 +8,22 @@ import type { JobListing, CandidateProfile } from "@/types";
 import { ResumeOptimizer } from "@/components/jobs/ResumeOptimizer";
 import {
   X, MapPin, DollarSign, Clock, Wifi, Building2, ExternalLink,
-  MessageSquare, BookOpen, ShieldCheck, ShieldQuestion, ShieldX,
-  CheckCircle2, AlertCircle, XCircle, Sparkles, Star,
+  BookOpen, ShieldCheck, ShieldQuestion, ShieldX,
+  CheckCircle2, AlertCircle, XCircle, Sparkles, Star, AlertTriangle,
 } from "lucide-react";
+
+type ExpiryState = "unknown" | "checking" | "expired" | "ok";
+
+async function check404(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) });
+    return res.status === 404 || res.status === 410;
+  } catch {
+    return false;
+  }
+}
+
+const JOB_EXPIRY_DAYS = 90;
 
 // Route to the correct job board based on source, using exact title + company
 const buildApplyUrl = (job: JobListing): string => {
