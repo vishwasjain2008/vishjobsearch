@@ -12,6 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { scoreJobAgainstProfile, deduplicateJobs } from "@/lib/jobScoring";
+import { useAppliedJobs } from "@/hooks/useAppliedJobs";
 
 const CACHE_TTL_DAYS = 10;
 
