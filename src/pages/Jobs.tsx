@@ -22,6 +22,7 @@ const Jobs: React.FC = () => {
   const [sortBy, setSortBy] = useState<"priority" | "match" | "recent">("priority");
   const [showFilters, setShowFilters] = useState(true);
   const { profile } = useProfile();
+  const { appliedIds, markApplied } = useAppliedJobs();
 
   const [rawJobs, setRawJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,16 +31,24 @@ const Jobs: React.FC = () => {
   const [nextRefreshDays, setNextRefreshDays] = useState<number | null>(null);
   const [showRefreshWarning, setShowRefreshWarning] = useState(false);
 
-  // Apply profile-aware scoring + dedup whenever raw jobs or profile changes
+  // Apply profile-aware scoring + dedup + filter applied jobs
   const jobs = useMemo(() => {
     const hasProfile = profile.skills.length > 0 || profile.tools.length > 0;
-    const scored = rawJobs.map((job) => {
-      const updates = hasProfile ? scoreJobAgainstProfile(job, profile) : {};
-      return { ...job, ...updates };
-    });
+    const scored = rawJobs
+      .filter((job) => !appliedIds.has(job.id))
+      .map((job) => {
+        const updates = hasProfile ? scoreJobAgainstProfile(job, profile) : {};
+        return { ...job, ...updates };
+      });
     const deduped = deduplicateJobs(scored);
     return deduped;
-  }, [rawJobs, profile]);
+  }, [rawJobs, profile, appliedIds]);
+
+  const handleMarkApplied = useCallback((job: JobListing) => {
+    markApplied(job);
+    toast.success(`"${job.title}" at ${job.company} added to your App Tracker`);
+    if (selectedJob?.id === job.id) setSelectedJob(null);
+  }, [markApplied, selectedJob]);
 
   const cacheAgeDays = cachedAt
     ? (Date.now() - new Date(cachedAt).getTime()) / (1000 * 60 * 60 * 24)
