@@ -31,9 +31,20 @@ const AppCard: React.FC<{ app: JobApplication; onDrop: (status: ApplicationStatu
           <Building2 className="w-4 h-4 text-accent-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-foreground truncate">{app.job.title}</p>
-          <p className="text-xs text-muted-foreground truncate">{app.job.company}</p>
-        </div>
+            <button
+              className="text-left group/link w-full"
+              onClick={() => {
+                const url = app.job.applyLink?.startsWith("http") ? app.job.applyLink : `https://www.google.com/search?q=${encodeURIComponent(`"${app.job.title}" ${app.job.company} job`)}&ibp=htl;jobs`;
+                window.open(url, "_blank", "noopener,noreferrer");
+              }}
+            >
+              <p className="text-xs font-semibold text-foreground truncate group-hover/link:text-primary transition-colors flex items-center gap-1">
+                {app.job.title}
+                <ExternalLink className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover/link:opacity-60 transition-opacity" />
+              </p>
+            </button>
+            <p className="text-xs text-muted-foreground truncate">{app.job.company}</p>
+          </div>
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
