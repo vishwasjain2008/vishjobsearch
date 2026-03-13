@@ -1,30 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import { Header } from "@/components/layout/Header";
 import { KanbanBoard } from "@/components/tracker/KanbanBoard";
-import { mockApplications } from "@/data/mockData";
-import type { JobApplication, ApplicationStatus } from "@/types";
+import type { ApplicationStatus } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, KanbanSquare, List } from "lucide-react";
+import { Plus, ClipboardList } from "lucide-react";
+import { useAppliedJobs } from "@/hooks/useAppliedJobs";
 
 const Tracker: React.FC = () => {
-  const [apps, setApps] = useState<JobApplication[]>(mockApplications);
-
-  const handleStatusChange = (id: string, status: ApplicationStatus) => {
-    setApps((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
-  };
+  const { applications, updateStatus } = useAppliedJobs();
 
   const counts = {
-    saved: apps.filter((a) => a.status === "saved").length,
-    applied: apps.filter((a) => a.status === "applied").length,
-    interview: apps.filter((a) => a.status === "interview").length,
-    offer: apps.filter((a) => a.status === "offer").length,
-    rejected: apps.filter((a) => a.status === "rejected").length,
+    saved: applications.filter((a) => a.status === "saved").length,
+    applied: applications.filter((a) => a.status === "applied").length,
+    interview: applications.filter((a) => a.status === "interview").length,
+    offer: applications.filter((a) => a.status === "offer").length,
+    rejected: applications.filter((a) => a.status === "rejected").length,
   };
 
   return (
     <div className="flex flex-col h-full">
-      <Header title="Application Tracker" subtitle={`${apps.length} applications tracked`} />
+      <Header title="Application Tracker" subtitle={`${applications.length} applications tracked`} />
       <div className="flex-1 overflow-hidden flex flex-col">
         {/* Top bar */}
         <div className="px-6 py-3 border-b border-border flex items-center gap-3 flex-wrap">
@@ -41,14 +36,21 @@ const Tracker: React.FC = () => {
             </div>
           ))}
           <div className="flex-1" />
-          <Button size="sm" className="gap-2 h-8 text-xs">
-            <Plus className="w-3.5 h-3.5" />Add Application
-          </Button>
         </div>
 
         {/* Kanban */}
         <div className="flex-1 overflow-auto p-6 scrollbar-thin">
-          <KanbanBoard applications={apps} onStatusChange={handleStatusChange} />
+          {applications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+              <ClipboardList className="w-10 h-10 text-muted-foreground/40" />
+              <p className="text-base font-semibold text-foreground">No applications yet</p>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Go to <strong>Job Discovery</strong> and check the <strong>Applied</strong> checkbox on any job to track it here.
+              </p>
+            </div>
+          ) : (
+            <KanbanBoard applications={applications} onStatusChange={updateStatus} />
+          )}
         </div>
       </div>
     </div>

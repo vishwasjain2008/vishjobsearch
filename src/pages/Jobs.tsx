@@ -264,8 +264,8 @@ const Jobs: React.FC = () => {
                     <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters</p>
                   </div>
                 ) : (
-                  filtered.map((job) => (
-                    <JobCard key={job.id} job={job} onSelect={setSelectedJob} />
+                   filtered.map((job) => (
+                    <JobCard key={job.id} job={job} onSelect={setSelectedJob} onMarkApplied={handleMarkApplied} />
                   ))
                 )}
               </div>
