@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import type { JobListing } from "@/types";
 import {
@@ -18,7 +19,6 @@ const buildApplyUrl = (job: JobListing): string => {
 
 const JOB_EXPIRY_DAYS = 90;
 
-/** Returns age of the job posting in days */
 function jobAgeDays(postedDate: string): number {
   return (Date.now() - new Date(postedDate).getTime()) / (1000 * 60 * 60 * 24);
 }
@@ -26,6 +26,7 @@ function jobAgeDays(postedDate: string): number {
 interface JobCardProps {
   job: JobListing;
   onSelect: (job: JobListing) => void;
+  onMarkApplied: (job: JobListing) => void;
   compact?: boolean;
 }
 
@@ -91,28 +92,19 @@ const formatSalary = (min?: number, max?: number) => {
   return null;
 };
 
-/** Checks if a URL returns a 404 using a no-cors HEAD-then-GET probe via a proxy-less trick */
 async function check404(url: string): Promise<boolean> {
   try {
-    // Use a no-cors fetch — we can only detect network errors, not status codes cross-origin.
-    // Instead, we use an <img> / fetch with mode: "no-cors" to get an opaque response.
-    // The most reliable cross-origin 404 detection: try to fetch with mode no-cors;
-    // a real page returns opaque (ok), a truly dead domain throws. For same-origin ATS
-    // domains we can sometimes see the status. Best-effort only.
     const res = await fetch(url, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) });
-    // Opaque responses (no-cors) have status 0 — we can't tell 404 from 200.
-    // For same-origin or CORS-enabled, status is readable.
     if (res.status === 404 || res.status === 410) return true;
     return false;
   } catch {
-    // Network error / timeout — assume not expired (conservative)
     return false;
   }
 }
 
 type ExpiryState = "unknown" | "checking" | "expired" | "ok";
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, compact }) => {
   const salary = formatSalary(job.salaryMin, job.salaryMax);
   const hoursAgo = Math.round((Date.now() - new Date(job.postedDate).getTime()) / 36e5);
   const timeLabel = hoursAgo < 1 ? "Just now" : hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.floor(hoursAgo / 24)}d ago`;
@@ -121,25 +113,30 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
   const mayBeExpired = ageDays >= JOB_EXPIRY_DAYS;
 
   const [expiryState, setExpiryState] = useState<ExpiryState>("unknown");
+  const [appliedChecked, setAppliedChecked] = useState(false);
 
   const handleApply = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = buildApplyUrl(job);
 
     if (expiryState === "expired") {
-      // Already confirmed expired — open Google search fallback
       window.open(`https://www.google.com/search?q=${encodeURIComponent(`"${job.title}" ${job.company} job`)}&ibp=htl;jobs`, "_blank", "noopener,noreferrer");
       return;
     }
 
-    // Open the link immediately
     window.open(url, "_blank", "noopener,noreferrer");
 
-    // Run 404 check in background if not already checked
     if (expiryState === "unknown") {
       setExpiryState("checking");
       const is404 = await check404(url);
       setExpiryState(is404 ? "expired" : "ok");
+    }
+  };
+
+  const handleAppliedChange = (checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      setAppliedChecked(true);
+      onMarkApplied(job);
     }
   };
 
@@ -243,23 +240,51 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, compact }) => {
               {job.competitionLevel} competition
             </span>
           </div>
-          <div className="flex gap-1.5">
+
+          {/* Action row: Apply (primary) · Applied checkbox · View (ghost) */}
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {/* Apply — primary, larger */}
             <Button
               size="sm"
-              variant={expiryState === "expired" ? "destructive" : "ghost"}
-              className="h-7 px-2 text-xs"
+              variant={expiryState === "expired" ? "destructive" : "default"}
+              className="h-8 px-4 text-xs font-semibold"
               onClick={handleApply}
               disabled={expiryState === "checking"}
             >
               {expiryState === "expired" ? (
-                <><XCircle className="w-3 h-3 mr-1" />Expired</>
+                <><XCircle className="w-3.5 h-3.5 mr-1" />Expired</>
               ) : expiryState === "checking" ? (
                 <span className="animate-pulse">Checking…</span>
               ) : (
-                <><ExternalLink className="w-3 h-3 mr-1" />Apply</>
+                <><ExternalLink className="w-3.5 h-3.5 mr-1" />Apply</>
               )}
             </Button>
-            <Button size="sm" className="h-7 px-3 text-xs" onClick={(e) => { e.stopPropagation(); onSelect(job); }}>
+
+            {/* Applied checkbox */}
+            <label
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded-md border transition-colors cursor-pointer select-none text-xs font-medium",
+                appliedChecked
+                  ? "bg-success/10 border-success/40 text-score-high"
+                  : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Checkbox
+                checked={appliedChecked}
+                onCheckedChange={handleAppliedChange}
+                className="h-3.5 w-3.5"
+                aria-label="Mark as applied"
+              />
+              Applied
+            </label>
+
+            {/* View — ghost */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 px-3 text-xs"
+              onClick={(e) => { e.stopPropagation(); onSelect(job); }}
+            >
               View
               <ChevronRight className="w-3 h-3 ml-1" />
             </Button>

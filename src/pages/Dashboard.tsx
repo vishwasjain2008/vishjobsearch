@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="space-y-3">
               {topJobs.map((job) => (
-                <JobCard key={job.id} job={job} onSelect={() => navigate("/jobs")} compact />
+                <JobCard key={job.id} job={job} onSelect={() => navigate("/jobs")} onMarkApplied={() => navigate("/jobs")} compact />
               ))}
             </div>
           </div>
