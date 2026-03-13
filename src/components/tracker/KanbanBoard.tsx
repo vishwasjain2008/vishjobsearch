@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { JobApplication, ApplicationStatus } from "@/types";
-import { Building2, MapPin, Plus, MoreHorizontal, Calendar, FileText, Trash2 } from "lucide-react";
+import { Building2, MoreHorizontal, Calendar, FileText, ExternalLink } from "lucide-react";
 
 interface KanbanBoardProps {
   applications: JobApplication[];
