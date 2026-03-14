@@ -117,6 +117,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
 
   const [expiryState, setExpiryState] = useState<ExpiryState>("unknown");
   const [appliedChecked, setAppliedChecked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(isBookmarked);
 
   const handleApply = async (e: React.MouseEvent) => {
     e.stopPropagation();
