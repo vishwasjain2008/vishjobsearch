@@ -168,25 +168,11 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
         <div className="flex items-start gap-3">
           {/* Number badge */}
           {index !== undefined && (
-            <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-bold mt-2">
+            <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold mt-2">
               {index}
             </span>
           )}
-          <div className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
-            knownSponsor ? "bg-success/10 border-success/30" : "bg-accent border-border"
-          )}>
-            <Building2 className={cn("w-5 h-5", knownSponsor ? "text-visa-friendly" : "text-accent-foreground")} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 flex-wrap">
-              <div>
-                <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors">
-                  {job.title}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{job.company}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
+...
                 {/* Bookmark button */}
                 <button
                   onClick={handleBookmark}
@@ -195,7 +181,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
                     "p-1 rounded-md transition-colors",
                     bookmarked
                       ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                   )}
                 >
                   <Bookmark className={cn("w-4 h-4", bookmarked && "fill-current")} />
