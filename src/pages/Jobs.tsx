@@ -222,6 +222,19 @@ const Jobs: React.FC = () => {
               </span>
 
               <span className="text-xs text-muted-foreground">{filtered.length} results</span>
+              {/* Saved filter toggle */}
+              <button
+                onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors border",
+                  showBookmarksOnly
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                <Bookmark className={cn("w-3 h-3", showBookmarksOnly && "fill-current")} />
+                Saved{bookmarkedIds.size > 0 && ` (${bookmarkedIds.size})`}
+              </button>
               <div className="flex gap-1">
                 {[
                   { id: "priority", label: "Priority" },
