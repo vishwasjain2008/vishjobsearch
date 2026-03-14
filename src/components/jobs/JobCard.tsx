@@ -7,7 +7,7 @@ import type { JobListing } from "@/types";
 import {
   MapPin, Clock, DollarSign, Wifi, Building2,
   ExternalLink, ChevronRight, ShieldCheck, ShieldQuestion, ShieldX, Star,
-  AlertTriangle, XCircle,
+  AlertTriangle, XCircle, Bookmark,
 } from "lucide-react";
 import { isKnownH1BSponsor } from "@/lib/h1bSponsors";
 

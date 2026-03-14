@@ -13,6 +13,7 @@ export interface FilterState {
   salaryMin: number;
   source: string;
   visaFriendly: boolean;
+  h1bOnly: boolean;
   minMatch: number;
   timing: string[];
   competition: string[];
