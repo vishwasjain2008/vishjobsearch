@@ -6,13 +6,14 @@ import { JobDetail } from "@/components/jobs/JobDetail";
 import { Button } from "@/components/ui/button";
 import { mockJobs } from "@/data/mockData";
 import type { JobListing } from "@/types";
-import { RefreshCw, Sliders, Wifi, WifiOff, Clock, AlertTriangle } from "lucide-react";
+import { RefreshCw, Sliders, Wifi, WifiOff, Clock, AlertTriangle, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { scoreJobAgainstProfile, deduplicateJobs } from "@/lib/jobScoring";
 import { useAppliedJobs } from "@/hooks/useAppliedJobs";
+import { isKnownH1BSponsor } from "@/lib/h1bSponsors";
 
 const CACHE_TTL_DAYS = 10;
 
