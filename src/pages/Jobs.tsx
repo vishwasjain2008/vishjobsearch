@@ -56,6 +56,16 @@ const Jobs: React.FC = () => {
     if (selectedJob?.id === job.id) setSelectedJob(null);
   }, [markApplied, selectedJob]);
 
+  const handleBookmark = useCallback((job: JobListing, saved: boolean) => {
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (saved) next.add(job.id); else next.delete(job.id);
+      localStorage.setItem("bookmarkedJobs", JSON.stringify([...next]));
+      return next;
+    });
+    toast.success(saved ? `"${job.title}" saved for later` : `"${job.title}" removed from saved`);
+  }, []);
+
   const cacheAgeDays = cachedAt
     ? (Date.now() - new Date(cachedAt).getTime()) / (1000 * 60 * 60 * 24)
     : null;
