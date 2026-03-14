@@ -30,6 +30,7 @@ export const defaultFilters: FilterState = {
   salaryMin: 0,
   source: "",
   visaFriendly: false,
+  h1bOnly: false,
   minMatch: 0,
   timing: [],
   competition: [],
