@@ -168,7 +168,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
         <div className="flex items-start gap-3">
           {/* Number badge */}
           {index !== undefined && (
-            <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-bold mt-2">
+            <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold mt-2">
               {index}
             </span>
           )}
@@ -195,7 +195,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
                     "p-1 rounded-md transition-colors",
                     bookmarked
                       ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                   )}
                 >
                   <Bookmark className={cn("w-4 h-4", bookmarked && "fill-current")} />
