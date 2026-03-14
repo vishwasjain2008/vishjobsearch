@@ -158,6 +158,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
         knownSponsor
           ? "border-success/40 hover:border-success/60 ring-1 ring-success/20"
           : "hover:border-primary/30",
+        bookmarked && "ring-1 ring-primary/30 border-primary/30",
         mayBeExpired && expiryState !== "ok" && "opacity-75"
       )}
       onClick={() => onSelect(job)}
@@ -165,6 +166,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
       <CardContent className={cn("p-4", compact && "p-3")}>
         {/* Header row */}
         <div className="flex items-start gap-3">
+          {/* Number badge */}
+          {index !== undefined && (
+            <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-bold mt-2">
+              {index}
+            </span>
+          )}
           <div className={cn(
             "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
             knownSponsor ? "bg-success/10 border-success/30" : "bg-accent border-border"
@@ -179,7 +186,20 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{job.company}</p>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Bookmark button */}
+                <button
+                  onClick={handleBookmark}
+                  title={bookmarked ? "Remove bookmark" : "Save for later"}
+                  className={cn(
+                    "p-1 rounded-md transition-colors",
+                    bookmarked
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100"
+                  )}
+                >
+                  <Bookmark className={cn("w-4 h-4", bookmarked && "fill-current")} />
+                </button>
                 <ScoreBadge score={job.matchScore} label="Match" />
                 <ScoreBadge score={job.priorityScore} label="Priority" />
               </div>
