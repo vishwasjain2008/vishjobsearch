@@ -27,6 +27,9 @@ interface JobCardProps {
   job: JobListing;
   onSelect: (job: JobListing) => void;
   onMarkApplied: (job: JobListing) => void;
+  onBookmark?: (job: JobListing, saved: boolean) => void;
+  isBookmarked?: boolean;
+  index?: number;
   compact?: boolean;
 }
 

@@ -160,16 +160,27 @@ export const JobFilters: React.FC<JobFiltersProps> = ({ filters, onChange }) => 
             </div>
           </div>
 
-          {/* Visa */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.visaFriendly}
-              onChange={(e) => toggle("visaFriendly", e.target.checked)}
-              className="w-4 h-4 accent-primary"
-            />
-            <span className="text-sm text-foreground">Visa Friendly only</span>
-          </label>
+          {/* Visa toggles */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.visaFriendly}
+                onChange={(e) => toggle("visaFriendly", e.target.checked)}
+                className="w-4 h-4 accent-primary"
+              />
+              <span className="text-sm text-foreground">Visa Friendly only</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.h1bOnly}
+                onChange={(e) => toggle("h1bOnly", e.target.checked)}
+                className="w-4 h-4 accent-primary"
+              />
+              <span className="text-sm text-foreground">H1B Sponsors only ⭐</span>
+            </label>
+          </div>
 
           {activeCount > 0 && (
             <Button variant="ghost" size="sm" className="w-full gap-1.5 text-xs h-8" onClick={() => onChange(defaultFilters)}>
