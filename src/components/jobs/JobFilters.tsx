@@ -52,6 +52,7 @@ export const JobFilters: React.FC<JobFiltersProps> = ({ filters, onChange }) => 
     filters.salaryMin > 0,
     filters.source !== "",
     filters.visaFriendly,
+    filters.h1bOnly,
     filters.minMatch > 0,
     filters.timing.length > 0,
     filters.competition.length > 0,
