@@ -6,13 +6,14 @@ import { JobDetail } from "@/components/jobs/JobDetail";
 import { Button } from "@/components/ui/button";
 import { mockJobs } from "@/data/mockData";
 import type { JobListing } from "@/types";
-import { RefreshCw, Sliders, Wifi, WifiOff, Clock, AlertTriangle } from "lucide-react";
+import { RefreshCw, Sliders, Wifi, WifiOff, Clock, AlertTriangle, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { scoreJobAgainstProfile, deduplicateJobs } from "@/lib/jobScoring";
 import { useAppliedJobs } from "@/hooks/useAppliedJobs";
+import { isKnownH1BSponsor } from "@/lib/h1bSponsors";
 
 const CACHE_TTL_DAYS = 10;
 
@@ -21,6 +22,11 @@ const Jobs: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [sortBy, setSortBy] = useState<"priority" | "match" | "recent">("priority");
   const [showFilters, setShowFilters] = useState(true);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("bookmarkedJobs") ?? "[]")); }
+    catch { return new Set(); }
+  });
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const { profile } = useProfile();
   const { appliedIds, markApplied } = useAppliedJobs();
 
@@ -49,6 +55,16 @@ const Jobs: React.FC = () => {
     toast.success(`"${job.title}" at ${job.company} added to your App Tracker`);
     if (selectedJob?.id === job.id) setSelectedJob(null);
   }, [markApplied, selectedJob]);
+
+  const handleBookmark = useCallback((job: JobListing, saved: boolean) => {
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (saved) next.add(job.id); else next.delete(job.id);
+      localStorage.setItem("bookmarkedJobs", JSON.stringify([...next]));
+      return next;
+    });
+    toast.success(saved ? `"${job.title}" saved for later` : `"${job.title}" removed from saved`);
+  }, []);
 
   const cacheAgeDays = cachedAt
     ? (Date.now() - new Date(cachedAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -131,8 +147,10 @@ const Jobs: React.FC = () => {
     if (filters.salaryMin > 0) result = result.filter((j) => (j.salaryMin ?? 0) >= filters.salaryMin);
     if (filters.minMatch > 0) result = result.filter((j) => j.matchScore >= filters.minMatch);
     if (filters.visaFriendly) result = result.filter((j) => j.visaStatus === "friendly");
+    if (filters.h1bOnly) result = result.filter((j) => isKnownH1BSponsor(j.company));
     if (filters.timing.length > 0) result = result.filter((j) => filters.timing.includes(j.timingTag));
     if (filters.competition.length > 0) result = result.filter((j) => filters.competition.includes(j.competitionLevel));
+    if (showBookmarksOnly) result = result.filter((j) => bookmarkedIds.has(j.id));
 
     result.sort((a, b) =>
       sortBy === "priority" ? b.priorityScore - a.priorityScore :
@@ -140,7 +158,7 @@ const Jobs: React.FC = () => {
       new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
     );
     return result;
-  }, [filters, sortBy, jobs]);
+  }, [filters, sortBy, jobs, showBookmarksOnly, bookmarkedIds]);
 
   const newCount = jobs.filter((j) => j.timingTag === "new").length;
   const earlyCount = jobs.filter((j) => j.timingTag === "early").length;
@@ -204,6 +222,19 @@ const Jobs: React.FC = () => {
               </span>
 
               <span className="text-xs text-muted-foreground">{filtered.length} results</span>
+              {/* Saved filter toggle */}
+              <button
+                onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors border",
+                  showBookmarksOnly
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                <Bookmark className={cn("w-3 h-3", showBookmarksOnly && "fill-current")} />
+                Saved{bookmarkedIds.size > 0 && ` (${bookmarkedIds.size})`}
+              </button>
               <div className="flex gap-1">
                 {[
                   { id: "priority", label: "Priority" },
@@ -264,8 +295,16 @@ const Jobs: React.FC = () => {
                     <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters</p>
                   </div>
                 ) : (
-                   filtered.map((job) => (
-                    <JobCard key={job.id} job={job} onSelect={setSelectedJob} onMarkApplied={handleMarkApplied} />
+                   filtered.map((job, i) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      index={i + 1}
+                      onSelect={setSelectedJob}
+                      onMarkApplied={handleMarkApplied}
+                      onBookmark={handleBookmark}
+                      isBookmarked={bookmarkedIds.has(job.id)}
+                    />
                   ))
                 )}
               </div>
