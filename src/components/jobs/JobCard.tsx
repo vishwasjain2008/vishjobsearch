@@ -107,7 +107,7 @@ async function check404(url: string): Promise<boolean> {
 
 type ExpiryState = "unknown" | "checking" | "expired" | "ok";
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, compact }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, onBookmark, isBookmarked = false, index, compact }) => {
   const salary = formatSalary(job.salaryMin, job.salaryMax);
   const hoursAgo = Math.round((Date.now() - new Date(job.postedDate).getTime()) / 36e5);
   const timeLabel = hoursAgo < 1 ? "Just now" : hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.floor(hoursAgo / 24)}d ago`;
