@@ -147,8 +147,10 @@ const Jobs: React.FC = () => {
     if (filters.salaryMin > 0) result = result.filter((j) => (j.salaryMin ?? 0) >= filters.salaryMin);
     if (filters.minMatch > 0) result = result.filter((j) => j.matchScore >= filters.minMatch);
     if (filters.visaFriendly) result = result.filter((j) => j.visaStatus === "friendly");
+    if (filters.h1bOnly) result = result.filter((j) => isKnownH1BSponsor(j.company));
     if (filters.timing.length > 0) result = result.filter((j) => filters.timing.includes(j.timingTag));
     if (filters.competition.length > 0) result = result.filter((j) => filters.competition.includes(j.competitionLevel));
+    if (showBookmarksOnly) result = result.filter((j) => bookmarkedIds.has(j.id));
 
     result.sort((a, b) =>
       sortBy === "priority" ? b.priorityScore - a.priorityScore :
