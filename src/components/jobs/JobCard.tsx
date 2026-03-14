@@ -119,6 +119,13 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
   const [appliedChecked, setAppliedChecked] = useState(false);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
 
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !bookmarked;
+    setBookmarked(next);
+    onBookmark?.(job, next);
+  };
+
   const handleApply = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = buildApplyUrl(job);
