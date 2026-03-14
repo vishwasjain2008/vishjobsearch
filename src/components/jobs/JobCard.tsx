@@ -172,7 +172,21 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelect, onMarkApplied, 
               {index}
             </span>
           )}
-...
+          <div className={cn(
+            "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
+            knownSponsor ? "bg-success/10 border-success/30" : "bg-accent border-border"
+          )}>
+            <Building2 className={cn("w-5 h-5", knownSponsor ? "text-visa-friendly" : "text-accent-foreground")} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 flex-wrap">
+              <div>
+                <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors">
+                  {job.title}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{job.company}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
                 {/* Bookmark button */}
                 <button
                   onClick={handleBookmark}
