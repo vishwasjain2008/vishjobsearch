@@ -22,6 +22,11 @@ const Jobs: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [sortBy, setSortBy] = useState<"priority" | "match" | "recent">("priority");
   const [showFilters, setShowFilters] = useState(true);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("bookmarkedJobs") ?? "[]")); }
+    catch { return new Set(); }
+  });
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const { profile } = useProfile();
   const { appliedIds, markApplied } = useAppliedJobs();
 
