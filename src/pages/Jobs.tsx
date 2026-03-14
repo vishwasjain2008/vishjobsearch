@@ -158,7 +158,7 @@ const Jobs: React.FC = () => {
       new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
     );
     return result;
-  }, [filters, sortBy, jobs]);
+  }, [filters, sortBy, jobs, showBookmarksOnly, bookmarkedIds]);
 
   const newCount = jobs.filter((j) => j.timingTag === "new").length;
   const earlyCount = jobs.filter((j) => j.timingTag === "early").length;
