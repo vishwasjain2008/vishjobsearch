@@ -324,10 +324,10 @@ function parseJobFromResult(result: SearchResult, idx: number): JobResult | null
     textVisaStatus === "rarely" ? "rarely" :
     (textVisaStatus === "friendly" || knownSponsor) ? "friendly" : "unknown";
 
-  // Match/priority scores — significant boost for known H1B sponsors and visa-friendly
-  const visaBoost = visaStatus === "friendly" ? (knownSponsor ? 15 : 10) : 0;
-  const matchScore = Math.min(95, 65 + strongMatchSkills.length * 5);
-  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + visaBoost);
+  // Match/priority scores — large boost for known H1B sponsors so they always surface first
+  const visaBoost = knownSponsor ? 30 : visaStatus === "friendly" ? 18 : 0;
+  const matchScore = Math.min(98, 65 + strongMatchSkills.length * 5);
+  const priorityScore = Math.min(98, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + visaBoost);
 
   // Industry guess
   const industryMap: [RegExp, string][] = [
