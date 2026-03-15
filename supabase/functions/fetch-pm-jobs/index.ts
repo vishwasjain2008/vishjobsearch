@@ -45,36 +45,75 @@ interface JobResult {
 // Top tech/product companies with consistent H1B approval history.
 // Matched case-insensitively against parsed company names.
 const H1B_SPONSORS = new Set([
-  // Big Tech
+  // ── Tier 1: Big Tech ───────────────────────────────────────────────────────
   "google", "alphabet", "microsoft", "amazon", "apple", "meta", "netflix",
   "salesforce", "oracle", "ibm", "intel", "qualcomm", "nvidia",
-  // Cloud / SaaS
+  // ── Tier 1: Cloud / Enterprise SaaS ───────────────────────────────────────
   "servicenow", "workday", "sap", "adobe", "vmware", "palo alto networks",
   "cloudflare", "datadog", "snowflake", "databricks", "twilio",
   "zendesk", "hubspot", "freshworks", "okta", "elastic",
-  // FinTech
+  // ── Tier 1: FinTech ────────────────────────────────────────────────────────
   "stripe", "block", "square", "paypal", "braintree", "adyen", "affirm",
   "robinhood", "coinbase", "chime", "plaid", "brex",
-  // E-commerce / Marketplace
+  // ── Tier 1: E-commerce / Marketplace ──────────────────────────────────────
   "ebay", "etsy", "shopify", "doordash", "instacart", "grubhub", "wayfair",
   "chewy", "poshmark",
-  // Rideshare / Mobility
+  // ── Tier 1: Rideshare / Mobility ───────────────────────────────────────────
   "uber", "lyft",
-  // Health / Bio Tech
-  "epic systems", "veeva", "tempus", "illumina", "moderna",
-  // Media / Entertainment
+  // ── Tier 1: Media / Social ─────────────────────────────────────────────────
   "spotify", "twitch", "reddit", "pinterest", "snap", "tiktok", "bytedance",
-  // Enterprise / Security
+  "linkedin", "dropbox", "box", "zoom", "slack", "airbnb",
+  "expedia", "booking", "tripadvisor", "yelp", "glassdoor",
+  // ── Tier 1: Health / BioTech ───────────────────────────────────────────────
+  "epic systems", "veeva", "tempus", "illumina", "moderna",
+  // ── Tier 1: Security ───────────────────────────────────────────────────────
   "crowdstrike", "splunk", "zscaler", "fortinet", "rapid7",
-  // Dev Tools / Infra
+  // ── Tier 1: Dev Tools / Infra ──────────────────────────────────────────────
   "atlassian", "github", "gitlab", "hashicorp", "confluent", "mongodb",
-  "elastic", "supabase", "vercel",
-  // Other high-volume H1B tech employers
-  "linkedin", "dropbox", "box", "zoom", "slack", "airbnb", "expedia",
-  "booking", "tripadvisor", "yelp", "glassdoor",
-  // Consulting / staffing (large H1B filers, but product roles exist)
+  "supabase", "vercel",
+  // ── Tier 1: Consulting / Staffing ──────────────────────────────────────────
   "cognizant", "infosys", "wipro", "tata consultancy", "hcl",
   "accenture", "deloitte", "capgemini",
+  // ── Tier 2: Collaboration / Productivity ───────────────────────────────────
+  "figma", "notion", "airtable", "miro", "asana", "monday", "clickup",
+  "coda", "loom", "calendly", "zapier",
+  // ── Tier 2: Developer Tools / Observability ────────────────────────────────
+  "pagerduty", "new relic", "dynatrace", "grafana", "harness",
+  "launchdarkly", "honeycomb", "postman", "jfrog", "circleci",
+  "algolia", "sendbird", "contentful",
+  // ── Tier 2: Data / Analytics ───────────────────────────────────────────────
+  "fivetran", "dbt labs", "monte carlo", "collibra", "alation",
+  "starburst", "airbyte", "thoughtspot", "amplitude", "mixpanel",
+  "heap", "fullstory", "segment",
+  // ── Tier 2: Security ───────────────────────────────────────────────────────
+  "sentinelone", "lacework", "wiz", "snyk", "tenable", "qualys",
+  "abnormal security", "recorded future", "cybereason",
+  "checkmarx", "veracode",
+  // ── Tier 2: FinTech / HR Tech ──────────────────────────────────────────────
+  "marqeta", "ramp", "rippling", "gusto", "carta", "navan",
+  "mercury", "deel", "lattice", "culture amp", "braze",
+  "iterable", "klaviyo",
+  // ── Tier 2: AI / ML ────────────────────────────────────────────────────────
+  "openai", "anthropic", "cohere", "scale ai", "hugging face",
+  "weights and biases", "labelbox", "c3.ai", "datarobot", "palantir",
+  // ── Tier 2: Healthcare / Life Sciences ─────────────────────────────────────
+  "flatiron health", "benchling", "doximity", "color health",
+  "recursion", "insitro", "pathai",
+  // ── Tier 2: Design / Productivity ──────────────────────────────────────────
+  "canva",
+  // ── Tier 2: Cloud / Infra ──────────────────────────────────────────────────
+  "fastly", "akamai",
+  // ── Tier 2: Gaming / Entertainment ─────────────────────────────────────────
+  "roblox", "unity", "epic games", "draftkings",
+  // ── Tier 2: Marketplaces ───────────────────────────────────────────────────
+  "faire", "thumbtack", "nextdoor",
+  // ── Tier 3: Growth-stage, confirmed H1B sponsors ───────────────────────────
+  "qualtrics", "medallia", "sprinklr",
+  "epam", "globant", "thoughtworks",
+  "tanium", "exabeam", "intercom", "front",
+  "toast", "samsara", "verkada",
+  "grammarly", "duolingo",
+  "glean", "moveworks", "workato",
 ]);
 
 /** Returns true if the company name matches any known H1B sponsor */
