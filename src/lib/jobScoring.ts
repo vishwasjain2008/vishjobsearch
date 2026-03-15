@@ -81,10 +81,9 @@ export function scoreJobAgainstProfile(
     matchScore = Math.min(95, matchScore + 5);
   }
 
-  // Priority score: match + context boosts
+  // Priority score: match + context boosts — H1B sponsors get the biggest lift
   const knownSponsor = isKnownH1BSponsor(job.company);
-  const visaBoost =
-    job.visaStatus === "friendly" ? (knownSponsor ? 15 : 10) : 0;
+  const visaBoost = knownSponsor ? 30 : job.visaStatus === "friendly" ? 18 : 0;
   const remoteBoost =
     job.isRemote && profile.remotePreference.includes("remote") ? 8 : 0;
   const industryBoost =
@@ -95,7 +94,7 @@ export function scoreJobAgainstProfile(
       : 0;
 
   const priorityScore = Math.min(
-    95,
+    98,
     matchScore + visaBoost + remoteBoost + industryBoost
   );
 

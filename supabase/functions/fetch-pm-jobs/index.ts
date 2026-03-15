@@ -324,10 +324,10 @@ function parseJobFromResult(result: SearchResult, idx: number): JobResult | null
     textVisaStatus === "rarely" ? "rarely" :
     (textVisaStatus === "friendly" || knownSponsor) ? "friendly" : "unknown";
 
-  // Match/priority scores — significant boost for known H1B sponsors and visa-friendly
-  const visaBoost = visaStatus === "friendly" ? (knownSponsor ? 15 : 10) : 0;
-  const matchScore = Math.min(95, 65 + strongMatchSkills.length * 5);
-  const priorityScore = Math.min(95, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + visaBoost);
+  // Match/priority scores — large boost for known H1B sponsors so they always surface first
+  const visaBoost = knownSponsor ? 30 : visaStatus === "friendly" ? 18 : 0;
+  const matchScore = Math.min(98, 65 + strongMatchSkills.length * 5);
+  const priorityScore = Math.min(98, 60 + strongMatchSkills.length * 5 + (isRemote ? 5 : 0) + visaBoost);
 
   // Industry guess
   const industryMap: [RegExp, string][] = [
@@ -442,23 +442,48 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search queries — H1B/visa-sponsorship queries first, then general US PM queries.
-    // No company names in queries to keep results unbiased across all H1B sponsors.
+    // ─── Search queries focused on known H1B sponsors ────────────────────────────
+    // ~75% of queries are company-specific to ensure H1B sponsors dominate results.
+    // Remaining ~25% catch visa-sponsorship-explicit listings from any company.
     const queries = [
-      // ── H1B / Visa sponsorship targeted (unbiased — no specific company names) ──
+      // ── Big Tech H1B sponsors ──────────────────────────────────────────────────
+      "Product Manager Google site:greenhouse.io OR site:lever.co",
+      "Product Manager Microsoft site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Amazon site:greenhouse.io OR site:lever.co OR site:amazon.jobs",
+      "Product Manager Meta site:greenhouse.io OR site:lever.co",
+      "Product Manager Apple site:greenhouse.io OR site:myworkdayjobs.com",
+      "Product Manager Salesforce site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Nvidia site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      // ── Cloud / SaaS H1B sponsors ─────────────────────────────────────────────
+      "Product Manager Snowflake site:greenhouse.io OR site:lever.co",
+      "Product Manager Databricks site:greenhouse.io OR site:lever.co",
+      "Product Manager Datadog site:greenhouse.io OR site:lever.co",
+      "Product Manager ServiceNow site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Workday site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Cloudflare site:greenhouse.io OR site:lever.co",
+      "Product Manager Okta site:greenhouse.io OR site:lever.co",
+      // ── FinTech H1B sponsors ───────────────────────────────────────────────────
+      "Product Manager Stripe site:greenhouse.io OR site:lever.co",
+      "Product Manager PayPal site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Coinbase site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Robinhood site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Affirm site:greenhouse.io OR site:lever.co",
+      // ── Other top H1B tech sponsors ───────────────────────────────────────────
+      "Product Manager Uber site:greenhouse.io OR site:lever.co",
+      "Product Manager Lyft site:greenhouse.io OR site:lever.co",
+      "Product Manager Airbnb site:greenhouse.io OR site:lever.co",
+      "Product Manager LinkedIn site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Spotify site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Adobe site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Oracle site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager IBM site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager Atlassian site:greenhouse.io OR site:lever.co",
+      "Product Manager Shopify site:greenhouse.io OR site:lever.co",
+      "Product Manager DoorDash site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── H1B / Visa explicit catch-all (any company that declares sponsorship) ──
       "Product Manager H1B visa sponsorship sponsor United States site:greenhouse.io OR site:lever.co",
       "Senior Product Manager will sponsor H-1B visa 2025 United States site:ashbyhq.com OR site:greenhouse.io",
-      "Product Manager immigration sponsorship work authorization USA site:lever.co OR site:greenhouse.io",
-      "Product Manager visa sponsorship offered United States site:myworkdayjobs.com OR site:icims.com",
-      // ── General US PM queries (all companies get equal chance) ──────────────────
-      "Senior Product Manager United States job 2025 site:greenhouse.io OR site:lever.co",
-      "Product Manager hiring United States site:ashbyhq.com OR site:myworkdayjobs.com",
-      "Principal Product Manager United States site:icims.com OR site:smartrecruiters.com",
-      "Director of Product Management United States 2025 site:greenhouse.io OR site:ashbyhq.com",
-      "Technical Product Manager United States site:greenhouse.io OR site:lever.co",
-      "Product Manager fintech United States site:ashbyhq.com OR site:myworkdayjobs.com",
-      "Senior Product Manager United States site:myworkdayjobs.com",
-      "Product Manager United States 2025 site:myworkdayjobs.com",
+      "Product Manager visa sponsorship offered United States site:myworkdayjobs.com",
     ];
 
     const allResults: SearchResult[] = [];
