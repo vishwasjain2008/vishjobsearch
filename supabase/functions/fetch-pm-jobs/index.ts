@@ -45,36 +45,75 @@ interface JobResult {
 // Top tech/product companies with consistent H1B approval history.
 // Matched case-insensitively against parsed company names.
 const H1B_SPONSORS = new Set([
-  // Big Tech
+  // ── Tier 1: Big Tech ───────────────────────────────────────────────────────
   "google", "alphabet", "microsoft", "amazon", "apple", "meta", "netflix",
   "salesforce", "oracle", "ibm", "intel", "qualcomm", "nvidia",
-  // Cloud / SaaS
+  // ── Tier 1: Cloud / Enterprise SaaS ───────────────────────────────────────
   "servicenow", "workday", "sap", "adobe", "vmware", "palo alto networks",
   "cloudflare", "datadog", "snowflake", "databricks", "twilio",
   "zendesk", "hubspot", "freshworks", "okta", "elastic",
-  // FinTech
+  // ── Tier 1: FinTech ────────────────────────────────────────────────────────
   "stripe", "block", "square", "paypal", "braintree", "adyen", "affirm",
   "robinhood", "coinbase", "chime", "plaid", "brex",
-  // E-commerce / Marketplace
+  // ── Tier 1: E-commerce / Marketplace ──────────────────────────────────────
   "ebay", "etsy", "shopify", "doordash", "instacart", "grubhub", "wayfair",
   "chewy", "poshmark",
-  // Rideshare / Mobility
+  // ── Tier 1: Rideshare / Mobility ───────────────────────────────────────────
   "uber", "lyft",
-  // Health / Bio Tech
-  "epic systems", "veeva", "tempus", "illumina", "moderna",
-  // Media / Entertainment
+  // ── Tier 1: Media / Social ─────────────────────────────────────────────────
   "spotify", "twitch", "reddit", "pinterest", "snap", "tiktok", "bytedance",
-  // Enterprise / Security
+  "linkedin", "dropbox", "box", "zoom", "slack", "airbnb",
+  "expedia", "booking", "tripadvisor", "yelp", "glassdoor",
+  // ── Tier 1: Health / BioTech ───────────────────────────────────────────────
+  "epic systems", "veeva", "tempus", "illumina", "moderna",
+  // ── Tier 1: Security ───────────────────────────────────────────────────────
   "crowdstrike", "splunk", "zscaler", "fortinet", "rapid7",
-  // Dev Tools / Infra
+  // ── Tier 1: Dev Tools / Infra ──────────────────────────────────────────────
   "atlassian", "github", "gitlab", "hashicorp", "confluent", "mongodb",
-  "elastic", "supabase", "vercel",
-  // Other high-volume H1B tech employers
-  "linkedin", "dropbox", "box", "zoom", "slack", "airbnb", "expedia",
-  "booking", "tripadvisor", "yelp", "glassdoor",
-  // Consulting / staffing (large H1B filers, but product roles exist)
+  "supabase", "vercel",
+  // ── Tier 1: Consulting / Staffing ──────────────────────────────────────────
   "cognizant", "infosys", "wipro", "tata consultancy", "hcl",
   "accenture", "deloitte", "capgemini",
+  // ── Tier 2: Collaboration / Productivity ───────────────────────────────────
+  "figma", "notion", "airtable", "miro", "asana", "monday", "clickup",
+  "coda", "loom", "calendly", "zapier",
+  // ── Tier 2: Developer Tools / Observability ────────────────────────────────
+  "pagerduty", "new relic", "dynatrace", "grafana", "harness",
+  "launchdarkly", "honeycomb", "postman", "jfrog", "circleci",
+  "algolia", "sendbird", "contentful",
+  // ── Tier 2: Data / Analytics ───────────────────────────────────────────────
+  "fivetran", "dbt labs", "monte carlo", "collibra", "alation",
+  "starburst", "airbyte", "thoughtspot", "amplitude", "mixpanel",
+  "heap", "fullstory", "segment",
+  // ── Tier 2: Security ───────────────────────────────────────────────────────
+  "sentinelone", "lacework", "wiz", "snyk", "tenable", "qualys",
+  "abnormal security", "recorded future", "cybereason",
+  "checkmarx", "veracode",
+  // ── Tier 2: FinTech / HR Tech ──────────────────────────────────────────────
+  "marqeta", "ramp", "rippling", "gusto", "carta", "navan",
+  "mercury", "deel", "lattice", "culture amp", "braze",
+  "iterable", "klaviyo",
+  // ── Tier 2: AI / ML ────────────────────────────────────────────────────────
+  "openai", "anthropic", "cohere", "scale ai", "hugging face",
+  "weights and biases", "labelbox", "c3.ai", "datarobot", "palantir",
+  // ── Tier 2: Healthcare / Life Sciences ─────────────────────────────────────
+  "flatiron health", "benchling", "doximity", "color health",
+  "recursion", "insitro", "pathai",
+  // ── Tier 2: Design / Productivity ──────────────────────────────────────────
+  "canva",
+  // ── Tier 2: Cloud / Infra ──────────────────────────────────────────────────
+  "fastly", "akamai",
+  // ── Tier 2: Gaming / Entertainment ─────────────────────────────────────────
+  "roblox", "unity", "epic games", "draftkings",
+  // ── Tier 2: Marketplaces ───────────────────────────────────────────────────
+  "faire", "thumbtack", "nextdoor",
+  // ── Tier 3: Growth-stage, confirmed H1B sponsors ───────────────────────────
+  "qualtrics", "medallia", "sprinklr",
+  "epam", "globant", "thoughtworks",
+  "tanium", "exabeam", "intercom", "front",
+  "toast", "samsara", "verkada",
+  "grammarly", "duolingo",
+  "glean", "moveworks", "workato",
 ]);
 
 /** Returns true if the company name matches any known H1B sponsor */
@@ -442,11 +481,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ─── Search queries focused on known H1B sponsors ────────────────────────────
-    // ~75% of queries are company-specific to ensure H1B sponsors dominate results.
-    // Remaining ~25% catch visa-sponsorship-explicit listings from any company.
+    // ─── Search queries: H1B sponsors across Tier 1, 2, and 3 ───────────────────
+    // Tier 1 big tech + Tier 2 mid-size + Tier 3 growth-stage, all targeted by name.
+    // Catch-all visa queries at the end sweep up any other explicit sponsors.
     const queries = [
-      // ── Big Tech H1B sponsors ──────────────────────────────────────────────────
+      // ── Tier 1: Big Tech ───────────────────────────────────────────────────────
       "Product Manager Google site:greenhouse.io OR site:lever.co",
       "Product Manager Microsoft site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
       "Product Manager Amazon site:greenhouse.io OR site:lever.co OR site:amazon.jobs",
@@ -454,33 +493,72 @@ Deno.serve(async (req) => {
       "Product Manager Apple site:greenhouse.io OR site:myworkdayjobs.com",
       "Product Manager Salesforce site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
       "Product Manager Nvidia site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
-      // ── Cloud / SaaS H1B sponsors ─────────────────────────────────────────────
+      // ── Tier 1: Cloud / SaaS ──────────────────────────────────────────────────
       "Product Manager Snowflake site:greenhouse.io OR site:lever.co",
       "Product Manager Databricks site:greenhouse.io OR site:lever.co",
       "Product Manager Datadog site:greenhouse.io OR site:lever.co",
       "Product Manager ServiceNow site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
-      "Product Manager Workday site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
       "Product Manager Cloudflare site:greenhouse.io OR site:lever.co",
       "Product Manager Okta site:greenhouse.io OR site:lever.co",
-      // ── FinTech H1B sponsors ───────────────────────────────────────────────────
+      // ── Tier 1: FinTech ────────────────────────────────────────────────────────
       "Product Manager Stripe site:greenhouse.io OR site:lever.co",
       "Product Manager PayPal site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
       "Product Manager Coinbase site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
       "Product Manager Robinhood site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
       "Product Manager Affirm site:greenhouse.io OR site:lever.co",
-      // ── Other top H1B tech sponsors ───────────────────────────────────────────
+      // ── Tier 1: Mobility / Media / Other ──────────────────────────────────────
       "Product Manager Uber site:greenhouse.io OR site:lever.co",
-      "Product Manager Lyft site:greenhouse.io OR site:lever.co",
       "Product Manager Airbnb site:greenhouse.io OR site:lever.co",
-      "Product Manager LinkedIn site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
       "Product Manager Spotify site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
-      "Product Manager Adobe site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
-      "Product Manager Oracle site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
-      "Product Manager IBM site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
+      "Product Manager LinkedIn site:greenhouse.io OR site:lever.co OR site:myworkdayjobs.com",
       "Product Manager Atlassian site:greenhouse.io OR site:lever.co",
-      "Product Manager Shopify site:greenhouse.io OR site:lever.co",
       "Product Manager DoorDash site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
-      // ── H1B / Visa explicit catch-all (any company that declares sponsorship) ──
+      // ── Tier 2: Collaboration / Productivity ──────────────────────────────────
+      "Product Manager Figma site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Notion site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Airtable site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Miro site:greenhouse.io OR site:lever.co",
+      "Product Manager Asana site:greenhouse.io OR site:lever.co",
+      "Product Manager Canva site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Loom site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 2: Developer Tools / Observability ───────────────────────────────
+      "Product Manager PagerDuty site:greenhouse.io OR site:lever.co",
+      "Product Manager Harness site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager LaunchDarkly site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Postman site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Grafana site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 2: Data / Analytics ──────────────────────────────────────────────
+      "Product Manager Fivetran site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Amplitude site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Segment site:greenhouse.io OR site:lever.co",
+      "Product Manager ThoughtSpot site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 2: Security ──────────────────────────────────────────────────────
+      "Product Manager SentinelOne site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Wiz site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Snyk site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 2: FinTech / HR Tech ─────────────────────────────────────────────
+      "Product Manager Ramp site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Rippling site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Gusto site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Marqeta site:greenhouse.io OR site:lever.co",
+      "Product Manager Braze site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 2: AI / ML ───────────────────────────────────────────────────────
+      "Product Manager OpenAI site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Anthropic site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Scale AI site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Palantir site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 2: Other ─────────────────────────────────────────────────────────
+      "Product Manager Roblox site:greenhouse.io OR site:lever.co",
+      "Product Manager Doximity site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Tier 3: Growth-stage confirmed sponsors ────────────────────────────────
+      "Product Manager Grammarly site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Duolingo site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Glean site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Verkada site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Samsara site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Toast site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      "Product Manager Intercom site:greenhouse.io OR site:lever.co OR site:ashbyhq.com",
+      // ── Catch-all: explicit visa sponsorship from any company ─────────────────
       "Product Manager H1B visa sponsorship sponsor United States site:greenhouse.io OR site:lever.co",
       "Senior Product Manager will sponsor H-1B visa 2025 United States site:ashbyhq.com OR site:greenhouse.io",
       "Product Manager visa sponsorship offered United States site:myworkdayjobs.com",
